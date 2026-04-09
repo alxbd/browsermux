@@ -31,5 +31,6 @@ Desktop.ini
 preferences.json
 rules.json
 
-# Claude Code local settings
+# Claude Code local artefacts
 .claude/settings.local.json
+*.lock
