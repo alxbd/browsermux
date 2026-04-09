@@ -37,7 +37,7 @@ jobs:
 
       # PublishAot only activates on dotnet publish, not msbuild /t:Build
       - name: Publish Handler (native AOT)
-        run: dotnet publish src/BrowserMux.Handler/BrowserMux.Handler.csproj -c Release -r win-x64 --no-restore
+        run: dotnet publish src/BrowserMux.Handler/BrowserMux.Handler.csproj -c Release -r win-x64
 
       # Stage all outputs into out/
       - name: Stage output
