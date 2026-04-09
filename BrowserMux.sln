@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserMux.Core", "src\BrowserMux.Core\BrowserMux.Core.csproj", "{F8595F2C-7424-419E-8891-D7C1D1751BDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserMux.Handler", "src\BrowserMux.Handler\BrowserMux.Handler.csproj", "{31725444-F389-413C-BE46-0B3A0F3BCF8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserMux.App", "src\BrowserMux.App\BrowserMux.App.csproj", "{8456A44D-1D63-4038-B3EB-442E110251C4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Debug|Any CPU.Build.0 = Debug|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Debug|x64.ActiveCfg = Debug|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Debug|x64.Build.0 = Debug|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Debug|x86.ActiveCfg = Debug|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Debug|x86.Build.0 = Debug|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Release|Any CPU.ActiveCfg = Release|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Release|Any CPU.Build.0 = Release|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Release|x64.ActiveCfg = Release|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Release|x64.Build.0 = Release|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Release|x86.ActiveCfg = Release|x64
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF}.Release|x86.Build.0 = Release|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Debug|Any CPU.Build.0 = Debug|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Debug|x64.ActiveCfg = Debug|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Debug|x64.Build.0 = Debug|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Debug|x86.ActiveCfg = Debug|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Debug|x86.Build.0 = Debug|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Release|Any CPU.ActiveCfg = Release|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Release|Any CPU.Build.0 = Release|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Release|x64.ActiveCfg = Release|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Release|x64.Build.0 = Release|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Release|x86.ActiveCfg = Release|x64
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D}.Release|x86.Build.0 = Release|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Debug|Any CPU.Build.0 = Debug|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Debug|x64.ActiveCfg = Debug|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Debug|x64.Build.0 = Debug|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Debug|x86.ActiveCfg = Debug|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Debug|x86.Build.0 = Debug|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Release|Any CPU.ActiveCfg = Release|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Release|Any CPU.Build.0 = Release|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Release|x64.ActiveCfg = Release|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Release|x64.Build.0 = Release|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Release|x86.ActiveCfg = Release|x64
+		{8456A44D-1D63-4038-B3EB-442E110251C4}.Release|x86.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F8595F2C-7424-419E-8891-D7C1D1751BDF} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{31725444-F389-413C-BE46-0B3A0F3BCF8D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{8456A44D-1D63-4038-B3EB-442E110251C4} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+EndGlobal

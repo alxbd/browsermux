@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      # Extract version from tag (v1.2.3 -> 1.2.3)
+      - name: Set version
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+          pwsh scripts/set-version.ps1 -Version $version
+
+      - name: Restore
+        run: msbuild BrowserMux.sln /t:Restore /p:Configuration=Release /p:Platform=x64 /m /nologo /verbosity:minimal
+
+      - name: Build solution
+        run: msbuild BrowserMux.sln /t:Build /p:Configuration=Release /p:Platform=x64 /m /nologo /verbosity:minimal
+
+      # PublishAot only activates on dotnet publish, not msbuild /t:Build
+      - name: Publish Handler (native AOT)
+        run: dotnet publish src/BrowserMux.Handler/BrowserMux.Handler.csproj -c Release -r win-x64 --no-restore
+
+      # Stage all outputs into out/
+      - name: Stage output
+        shell: pwsh
+        run: |
+          $outDir = "out"
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+          # Copy App build output (glob the TFM folder so bumping it doesn't break the workflow)
+          $appBin = Get-ChildItem "src\BrowserMux.App\bin\x64\Release\net9.0-windows*" -Directory | Select-Object -First 1
+          Copy-Item "$($appBin.FullName)\*" -Destination $outDir -Recurse -Force
+
+          # Overwrite Handler with AOT-published binary
+          $handlerPublish = (Get-ChildItem "src\BrowserMux.Handler\bin\x64\Release\net9.0-windows*\win-x64\publish\BrowserMux.Handler.exe" | Select-Object -First 1).FullName
+          Copy-Item $handlerPublish -Destination $outDir -Force
+
+      # Build Inno Setup installer
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        run: iscc installer/setup.iss
+
+      # Create portable zip
+      - name: Create portable zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Compress-Archive -Path out/* -DestinationPath "dist/BrowserMux-Portable-$env:VERSION.zip"
+
+      # Publish GitHub Release with both assets
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            dist/BrowserMux-Setup-*.exe
+            dist/BrowserMux-Portable-*.zip
+
+      # ── Code signing (uncomment when you have a certificate) ──
+      # - name: Sign binaries
+      #   run: |
+      #     $cert = [System.Convert]::FromBase64String("${{ secrets.CODE_SIGN_CERT }}")
+      #     [System.IO.File]::WriteAllBytes("cert.pfx", $cert)
+      #     signtool sign /f cert.pfx /p "${{ secrets.CODE_SIGN_PASSWORD }}" /tr http://timestamp.sectigo.com /td sha256 /fd sha256 out/BrowserMux.exe out/BrowserMux.Handler.exe
+      #     Remove-Item cert.pfx

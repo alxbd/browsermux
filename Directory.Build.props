@@ -1,0 +1,38 @@
+<Project>
+  <!--
+    Single source of truth for the app version. Propagated to all assemblies
+    (Handler, App, Core) and read at runtime by AppInfo.AppVersion via reflection.
+    Bump here for releases — no other file to update.
+  -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+  </PropertyGroup>
+
+  <!--
+    Product / FileDescription metadata baked into the exe.
+    Windows 11 "Default apps" reads the title from FileDescription (AssemblyTitle),
+    so we suffix Debug builds with " Dev" to match AppInfo.AppName.
+  -->
+  <PropertyGroup>
+    <Product Condition="'$(Configuration)' == 'Debug'">BrowserMux Dev</Product>
+    <Product Condition="'$(Configuration)' != 'Debug'">BrowserMux</Product>
+    <AssemblyTitle>$(Product)</AssemblyTitle>
+    <Company>BrowserMux</Company>
+  </PropertyGroup>
+
+  <!--
+    WinUI 3 needs Microsoft.Build.Packaging.Pri.Tasks.dll which lives in VS.
+    Redirect MSBuildExtensionsPath to VS 2026 if the file isn't in the SDK.
+  -->
+  <PropertyGroup>
+    <_VsPriTasksDll>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll</_VsPriTasksDll>
+    <_VsFallbackDir>C:\Program Files\Microsoft Visual Studio\18\Insiders\MSBuild</_VsFallbackDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="!Exists('$(_VsPriTasksDll)') And Exists('$(_VsFallbackDir)\Microsoft\VisualStudio\v18.0\AppxPackage\Microsoft.Build.Packaging.Pri.Tasks.dll')">
+    <MSBuildExtensionsPath>$(_VsFallbackDir)</MSBuildExtensionsPath>
+    <VisualStudioVersion>18.0</VisualStudioVersion>
+  </PropertyGroup>
+</Project>

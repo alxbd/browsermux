@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows10.0.22621.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>BrowserMux.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWinUI>true</UseWinUI>
+    <!-- SelfContained activé uniquement en publish : dotnet publish -r win-x64 -->
+    <WindowsAppSDKSelfContained Condition="'$(RuntimeIdentifier)' != ''">true</WindowsAppSDKSelfContained>
+    <!-- App non-packagée (pas de MSIX) -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <!-- Désactive la génération MRT (pas nécessaire sans resources .resw) -->
+    <GeneratePriOnBuild>false</GeneratePriOnBuild>
+    <AssemblyName>BrowserMux</AssemblyName>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\AppIcon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250401001" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+    <PackageReference Include="H.NotifyIcon.WinUI" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BrowserMux.Core\BrowserMux.Core.csproj" />
+  </ItemGroup>
+
+</Project>

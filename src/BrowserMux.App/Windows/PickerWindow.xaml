@@ -1,0 +1,135 @@
+<Window
+    x:Class="BrowserMux.App.Windows.PickerWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:BrowserMux.App.Controls"
+    Title="PickerWindow">
+
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*"    />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Title (drag to move) -->
+        <Border Grid.Row="0" x:Name="TitleBar" Padding="16,10,16,4" Background="Transparent">
+            <TextBlock Text="Select a Browser"
+                       FontSize="14"
+                       FontWeight="SemiBold" />
+        </Border>
+
+        <!-- URL Bar -->
+        <Border x:Name="UrlBar" Grid.Row="1"
+                Padding="12,4,12,8"
+                BorderThickness="0,0,0,1"
+                BorderBrush="{ThemeResource SystemControlForegroundChromeGrayBrush}">
+            <Grid ColumnSpacing="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           x:Name="UrlText"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           FontSize="12"
+                           Opacity="0.7"
+                           IsTextSelectionEnabled="True"
+                           ToolTipService.ToolTip="{Binding ElementName=UrlText, Path=Text}" />
+
+                <Button Grid.Column="1"
+                        x:Name="CopyButton"
+                        Height="28"
+                        Padding="8,0"
+                        VerticalContentAlignment="Center"
+                        Click="CopyButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <FontIcon x:Name="CopyIcon" Glyph="&#xE8C8;" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock x:Name="CopyLabel" Text="Copy URL" FontSize="11" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Browser list: vertical rows, command palette style -->
+        <ListView x:Name="BrowsersPanel"
+                  Grid.Row="2"
+                  Padding="6,6,6,6"
+                  SelectionMode="Single"
+                  IsItemClickEnabled="False"
+                  ScrollViewer.HorizontalScrollMode="Disabled"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0,1,0,1" />
+                    <Setter Property="MinHeight" Value="56" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <controls:BrowserCard />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <!-- Actions Bar -->
+        <Border Grid.Row="3"
+                Padding="8,6"
+                BorderThickness="0,1,0,0"
+                BorderBrush="{ThemeResource SystemControlForegroundChromeGrayBrush}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock x:Name="ShiftHint"
+                               VerticalAlignment="Center"
+                               FontSize="10"
+                               Opacity="0.45"
+                               Text="" />
+
+                    <HyperlinkButton x:Name="SetDefaultLink"
+                                     FontSize="10"
+                                     Padding="0"
+                                     Visibility="Collapsed"
+                                     Click="SetDefaultBrowser_Click">
+                        <TextBlock Text="Set as default browser" FontSize="10" />
+                    </HyperlinkButton>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <Button FontSize="11"
+                            Padding="8,4"
+                            VerticalContentAlignment="Center"
+                            ToolTipService.ToolTip="Settings"
+                            Click="RulesButton_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE713;" FontSize="11" VerticalAlignment="Center" />
+                            <TextBlock Text="Settings" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button FontSize="11"
+                            Padding="8,4"
+                            VerticalContentAlignment="Center"
+                            ToolTipService.ToolTip="Close (Esc)"
+                            Click="CancelButton_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE711;" FontSize="11" VerticalAlignment="Center" />
+                            <TextBlock Text="Close" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
