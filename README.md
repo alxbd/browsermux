@@ -8,7 +8,7 @@ Choose which browser, or which profile, opens each link.
 [![CI](https://github.com/alxbd/browsermux/actions/workflows/ci.yml/badge.svg)](https://github.com/alxbd/browsermux/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/alxbd/browsermux)](https://github.com/alxbd/browsermux/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%2011-0078D6)](https://www.microsoft.com/windows)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6)](https://www.microsoft.com/windows)
 
 [Website](https://browsermux.com) · [Download](https://github.com/alxbd/browsermux/releases/latest) · [Report a bug](https://github.com/alxbd/browsermux/issues)
 
@@ -52,12 +52,13 @@ All preferences and rules live in `%LOCALAPPDATA%\BrowserMux\` as plain JSON.
 
 > A portable zip is also published if you'd rather not install. Note: the portable build can't be set as the system default browser without the registry entries the installer adds.
 
-**Requirements**: Windows 11, .NET 9 Desktop Runtime (x64). The installer will prompt if missing.
+**Requirements**: Windows 10 (1809+) or Windows 11, .NET 9 Desktop Runtime (x64). The installer will prompt if missing.
+
 **Footprint**: ~10 MB installer, ~ 50MB on RAM. The URL handler is a C# AOT native binary (<2 MB) with sub-50 ms cold start.
 
 ### Why does it need to be the default browser?
 
-Windows only forwards `http`/`https` clicks to whichever app is registered as the default browser. For BrowserMux to intercept a link, Windows has to send it to BrowserMux first. The tiny `BrowserMux.Handler` exe receives the URL, forwards it over a named pipe to the main app (which shows the picker), and then the *real* browser you chose opens the link. BrowserMux itself never renders web content — it's a 2 MB router, not a browser.
+Windows only forwards `http`/`https` clicks to whichever app is registered as the default browser. For BrowserMux to intercept a link, Windows has to send it to BrowserMux first. The tiny `BrowserMux.Handler` exe receives the URL, forwards it over a named pipe to the main app (which shows the picker), and then the *real* browser you chose opens the link. BrowserMux itself never renders web content — it's a router, not a browser.
 
 ### SmartScreen warning
 
