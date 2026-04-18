@@ -174,31 +174,12 @@ public sealed class PreferencesService
         SaveRules();
     }
 
-    // ── Pinning ──────────────────────────────────────────────────────────────
+    // ── Browser order ──────────────────────────────────────────────────────
 
-    public void Pin(string id)
+    public void SetBrowserOrder(List<string> ids)
     {
-        if (!Current.PinnedBrowserIds.Contains(id))
-        {
-            Current.PinnedBrowserIds.Add(id);
-            AppLogger.Info($"[PreferencesService] Pin: {id}");
-            Save();
-        }
-    }
-
-    public void Unpin(string id)
-    {
-        if (Current.PinnedBrowserIds.Remove(id))
-        {
-            AppLogger.Info($"[PreferencesService] Unpin: {id}");
-            Save();
-        }
-    }
-
-    public void SetPinnedOrder(List<string> ids)
-    {
-        Current.PinnedBrowserIds = ids;
-        AppLogger.Info($"[PreferencesService] SetPinnedOrder: [{string.Join(", ", ids)}]");
+        Current.BrowserOrder = ids;
+        AppLogger.Info($"[PreferencesService] SetBrowserOrder: [{string.Join(", ", ids)}]");
         Save();
     }
 

@@ -15,8 +15,8 @@ public class UserPreferences
     /// <summary>Schema version — see AppInfo.PreferencesSchemaVersion.</summary>
     public int SchemaVersion { get; set; } = AppInfo.PreferencesSchemaVersion;
 
-    /// <summary>IDs in desired order (first ones appear at the top of the picker)</summary>
-    public List<string> PinnedBrowserIds { get; set; } = [];
+    /// <summary>All browser IDs in the user's desired display order.</summary>
+    public List<string> BrowserOrder { get; set; } = [];
 
     /// <summary>IDs to hide completely from the picker</summary>
     public HashSet<string> HiddenBrowserIds { get; set; } = [];

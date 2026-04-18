@@ -19,7 +19,6 @@ public sealed partial class BrowserCardViewModel : ObservableObject
     public string? IconPath { get; init; }
     public string? CurrentUrl { get; set; }
     public int IconSize { get; init; } = 32;
-    public bool IsPinned { get; init; }
     public int? ProfileColor { get; init; }
     public Action? OnLaunched { get; set; }
 

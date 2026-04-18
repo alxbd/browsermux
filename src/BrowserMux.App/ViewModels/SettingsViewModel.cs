@@ -180,7 +180,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     private void LoadBrowserItems()
     {
         var hidden = _prefs.Current.HiddenBrowserIds;
-        var pinned = _prefs.Current.PinnedBrowserIds;
+        var browserOrder = _prefs.Current.BrowserOrder;
 
         var vms = _browserOptions.Select(b => new BrowserItemViewModel
         {
@@ -189,9 +189,9 @@ public sealed partial class SettingsViewModel : ObservableObject
             ExePath = _idToExePath.TryGetValue(b.Id, out var p) ? p : "",
         }).ToList();
 
-        var ordered = vms.Where(v => pinned.Contains(v.Id))
-            .OrderBy(v => pinned.IndexOf(v.Id))
-            .Concat(vms.Where(v => !pinned.Contains(v.Id)))
+        var ordered = vms.Where(v => browserOrder.Contains(v.Id))
+            .OrderBy(v => browserOrder.IndexOf(v.Id))
+            .Concat(vms.Where(v => !browserOrder.Contains(v.Id)))
             .ToList();
 
         // Detach old handlers before clearing to avoid leaks on reload.
@@ -223,7 +223,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     internal void SaveBrowserOrder()
     {
         var ordered = BrowserItems.Select(b => b.Id).ToList();
-        _prefs.SetPinnedOrder(ordered);
+        _prefs.SetBrowserOrder(ordered);
     }
 
     // ── Custom browsers ─────────────────────────────────────────────────────

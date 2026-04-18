@@ -126,7 +126,7 @@ public sealed partial class PickerViewModel : ObservableObject
     {
         var prefs = PreferencesService.Instance;
         var hidden = prefs.Current.HiddenBrowserIds;
-        var pinned = prefs.Current.PinnedBrowserIds;
+        var browserOrder = prefs.Current.BrowserOrder;
         const int iconSize = 32;
 
         var all = new List<BrowserCardViewModel>();
@@ -150,7 +150,6 @@ public sealed partial class PickerViewModel : ObservableObject
                         IconSize     = iconSize,
                         CurrentUrl   = CurrentUrl,
                         OnLaunched   = () => RequestHide?.Invoke(),
-                        IsPinned     = pinned.Contains(id),
                         ProfileColor = profile.ProfileColor,
                     });
                 }
@@ -169,15 +168,14 @@ public sealed partial class PickerViewModel : ObservableObject
                     IconSize    = iconSize,
                     CurrentUrl  = CurrentUrl,
                     OnLaunched  = () => RequestHide?.Invoke(),
-                    IsPinned    = pinned.Contains(exeName),
                 });
             }
         }
 
         var ordered = all
-            .Where(c => c.IsPinned)
-            .OrderBy(c => { var i = pinned.IndexOf(c.Id); return i < 0 ? int.MaxValue : i; })
-            .Concat(all.Where(c => !c.IsPinned))
+            .Where(c => browserOrder.Contains(c.Id))
+            .OrderBy(c => browserOrder.IndexOf(c.Id))
+            .Concat(all.Where(c => !browserOrder.Contains(c.Id)))
             .ToList();
 
         for (int i = 0; i < ordered.Count; i++)
