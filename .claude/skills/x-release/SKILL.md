@@ -54,6 +54,45 @@ and offers the upgrade.
 - **`git push` alone does not push tags**. Always `git push origin <tagname>`
   (or `git push --tags` if you want to push all unpushed tags — riskier).
 
+## Release notes
+
+The CI workflow creates a release with auto-generated notes (commit list). Those
+are not user-friendly. After the CI release is published, **overwrite the notes**
+with a proper changelog using `gh release edit`.
+
+### How to write release notes
+
+1. List commits since the previous tag:
+   ```bash
+   git log v1.0.0..v1.0.1 --oneline
+   ```
+2. Group changes into sections. Use only the sections that apply:
+   ```markdown
+   ## What's New         ← new user-facing features
+   ## Improvements       ← enhancements to existing features
+   ## Bug Fixes          ← bug fixes
+   ## Breaking Changes   ← anything that breaks existing config/behavior
+   ```
+3. Each bullet should describe the **user-visible effect**, not the code change.
+   Bad:  "Switch Content.KeyDown to Content.PreviewKeyDown"
+   Good: "Fixed Enter key not launching the selected browser in the picker"
+4. Push the notes:
+   ```bash
+   gh release edit v1.0.1 --notes "$(cat <<'EOF'
+   ## Bug Fixes
+   - Fixed browser drag-reorder not persisting in settings
+   - Fixed Enter key not launching selected browser in picker
+   EOF
+   )"
+   ```
+   Or use a file: `gh release edit v1.0.1 --notes-file RELEASE_NOTES.md`
+
+### Automation
+
+The workflow uses `generate_release_notes: true` as a fallback. The `gh release
+edit` step after CI is intentional — it lets you curate the notes after verifying
+the release assets are correct.
+
 ## Pre-flight checklist
 
 Before pushing a tag, verify:
