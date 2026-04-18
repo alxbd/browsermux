@@ -66,7 +66,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         BrowserItems.CollectionChanged += OnBrowserItemsChanged;
     }
 
-    private void OnBrowserItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    internal void OnBrowserItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         // Only react to drag-reorder moves; bulk Clear/Add during Load is ignored.
         if (_loading) return;
@@ -220,9 +220,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         _prefs.Save();
     }
 
-    private void SaveBrowserOrder()
+    internal void SaveBrowserOrder()
     {
-        var ordered = BrowserItems.Where(b => b.IsVisible).Select(b => b.Id).ToList();
+        var ordered = BrowserItems.Select(b => b.Id).ToList();
         _prefs.SetPinnedOrder(ordered);
     }
 

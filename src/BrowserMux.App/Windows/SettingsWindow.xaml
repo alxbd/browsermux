@@ -161,7 +161,8 @@
                 <TextBlock Text="Browsers" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,0,0,12" />
 
                 <ListView x:Name="BrowsersListView" SelectionMode="None"
-                          CanReorderItems="True" CanDragItems="True" AllowDrop="True">
+                          CanReorderItems="True" CanDragItems="True" AllowDrop="True"
+                          DragItemsCompleted="BrowsersListView_DragItemsCompleted">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="Padding" Value="0" />

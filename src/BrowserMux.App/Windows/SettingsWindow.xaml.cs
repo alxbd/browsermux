@@ -287,6 +287,23 @@ public sealed partial class SettingsWindow : Window
         RulesListView.ItemsSource = ViewModel.RuleItems;
     }
 
+    // ── Browser drag-reorder ──────────────────────────────────────────────
+
+    private void BrowsersListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+    {
+        // WinUI 3 ListView reorders its internal items but does not update the
+        // source ObservableCollection. Sync the collection to match the visual order.
+        var reordered = sender.Items.Cast<BrowserItemViewModel>().ToList();
+
+        ViewModel.BrowserItems.CollectionChanged -= ViewModel.OnBrowserItemsChanged;
+        ViewModel.BrowserItems.Clear();
+        foreach (var item in reordered)
+            ViewModel.BrowserItems.Add(item);
+        ViewModel.BrowserItems.CollectionChanged += ViewModel.OnBrowserItemsChanged;
+
+        ViewModel.SaveBrowserOrder();
+    }
+
     // ── Rules tab event handlers → VM ───────────────────────────────────────
 
     private void RuleDomain_LostFocus(object sender, RoutedEventArgs e) => ViewModel.SaveRules();
