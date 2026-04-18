@@ -185,8 +185,8 @@ public sealed partial class PickerWindow : Window
         Activated += OnActivationChanged;
         AppWindow.Closing += (_, args) => { args.Cancel = true; HideWindow(); };
 
-        Content.KeyDown += OnKeyDown;
-        Content.KeyUp   += OnKeyUp;
+        Content.PreviewKeyDown += OnKeyDown;
+        Content.KeyUp          += OnKeyUp;
     }
 
     private void OnFirstActivated(object sender, WindowActivatedEventArgs e)
