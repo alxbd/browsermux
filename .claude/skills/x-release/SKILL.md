@@ -120,11 +120,11 @@ Then ship `v1.2.4` with the fix. Do not reuse `v1.2.3`.
 ## Files involved
 
 - `.github/workflows/release.yml` — the trigger, runs on `push` of `v*` tags
-- `scripts/set-version.ps1` — rewrites version in both source-of-truth files
-- `Directory.Build.props` — `<Version>` consumed by all C# projects
+- `scripts/set-version.ps1` — rewrites version in `Directory.Build.props` and `setup.iss`
+- `Directory.Build.props` — `Version`, `FileVersion`, `InformationalVersion` consumed by all C# projects
 - `installer/setup.iss` — `#define AppVersion` consumed by Inno Setup
-- `src/BrowserMux.Core/AppInfo.cs` — reads the version from assembly metadata
-  at runtime, no edit needed
+- `src/BrowserMux.Core/AppInfo.cs` — reads `InformationalVersion` from assembly metadata
+  at runtime, no edit needed (the version comes from `Directory.Build.props`)
 
 ## Code signing
 
