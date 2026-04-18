@@ -88,7 +88,12 @@ public sealed partial class SettingsViewModel : ObservableObject
         DetectChromiumProfiles = Settings.DetectChromiumProfiles;
         LauncherHotkey = Settings.LauncherHotkey ?? "";
 
+
+#if DEBUG
+        VersionText = "dev";
+#else
         VersionText = $"v{AppInfo.AppVersion}";
+#endif
         var status = RegistrySetup.Check();
         RegistryStatusText = status.IsDefaultBrowser
             ? "BrowserMux is the default browser"

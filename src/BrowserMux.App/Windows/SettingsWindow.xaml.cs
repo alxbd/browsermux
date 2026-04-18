@@ -35,9 +35,13 @@ public sealed partial class SettingsWindow : Window
         PreferencesService.Instance.SettingsChanged += OnSettingsChanged;
         Closed += (_, _) => PreferencesService.Instance.SettingsChanged -= OnSettingsChanged;
 
+#if DEBUG
+        UpdateCard.Visibility = Visibility.Collapsed;
+#else
         // Kick off an update check as soon as the window is shown. The check itself
         // honors a 6h cooldown, so opening Settings repeatedly won't spam GitHub.
         Activated += OnFirstActivated;
+#endif
     }
 
     private void OnFirstActivated(object sender, WindowActivatedEventArgs e)
