@@ -34,3 +34,6 @@ rules.json
 # Claude Code local artefacts
 .claude/settings.local.json
 *.lock
+
+# Superpowers working notes (design specs, brainstorms)
+docs/superpowers/
