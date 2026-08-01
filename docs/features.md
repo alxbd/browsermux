@@ -151,6 +151,9 @@ Paste a URL and see which rule (and browser) it would resolve to.
 
 ## Settings — General / Appearance
 
+### Start with Windows
+Toggle that registers BrowserMux in `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` under the value name `AppInfo.AppName` (so Dev and Prod channels never collide). The registry value is the only state — nothing is stored in `preferences.json`, so the toggle always reflects what Windows will actually do, even if the entry was removed from Task Manager > Startup. Offered during install as a task checked by default. See [installer-inno.md](installer-inno.md).
+
 ### Theme
 System / Light / Dark. The Settings window is recreated on theme change to avoid a known WinUI 3 freeze.
 
@@ -191,6 +194,12 @@ Registry keys (`BrowserMuxURL` ProgId, `Capabilities`, `RegisteredApplications`,
 
 ### Registration health check
 On startup the app verifies the expected registry keys are present and logs warnings if anything is missing.
+
+### Startup entry self-repair
+At launch, `StartupRegistration.RepairIfNeeded()` rewrites the Run value when it points somewhere other than the running exe (app moved, per-user install replaced by a machine install). Does nothing when startup is off.
+
+### Launch argument validation
+The first command-line argument is only treated as a URL when it parses as an absolute `http`/`https` URI. A stray argument can never drive the picker.
 
 ### AOT handler
 `BrowserMux.Handler.exe` is the small native-AOT executable actually registered as the browser. It starts in well under 100 ms, forwards the incoming URL to the running app over the named pipe, and launches the app if it isn't already running.

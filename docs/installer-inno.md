@@ -117,6 +117,52 @@ automatically. Each top-level key has `Flags: uninsdeletekey` so uninstall clean
 | `Software\Clients\StartMenuInternet\BrowserMux\Capabilities` | `ApplicationName`, `ApplicationDescription`, `ApplicationIcon` |
 | `Software\Clients\StartMenuInternet\BrowserMux\Capabilities\URLAssociations` | `http`/`https` → `BrowserMuxURL` |
 | `Software\RegisteredApplications\BrowserMux` | Index entry making it visible in Settings → Default Apps |
+| `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\BrowserMux` | Start with Windows. **Always `HKCU`**, never `HKA` — see below |
+
+### Start with Windows
+
+Two `[Registry]` lines drive the `startupicon` task:
+
+```ini
+Root: HKCU; Subkey: "{#RunKey}"; ValueType: string; ValueName: "{#AppName}"; ValueData: """{app}\{#AppExeName}"""; Flags: uninsdeletevalue; Tasks: startupicon;     Check: IsInteractiveInstall
+Root: HKCU; Subkey: "{#RunKey}"; ValueType: none;   ValueName: "{#AppName}";                                      Flags: deletevalue;      Tasks: not startupicon; Check: IsInteractiveInstall
+```
+
+- **`HKCU` and never `HKA`** — the entry must stay per-user so the in-app toggle
+  (Settings → General → "Start with Windows") can change it without admin rights, even
+  after an "all users" install.
+- The second line is what makes *unchecking* the task on a re-run actually turn startup off.
+- `uninsdeletevalue` removes the value on uninstall.
+- The app owns the same value at runtime via
+  `src/BrowserMux.Core/Services/StartupRegistration.cs`. The registry is the single source
+  of truth: nothing is mirrored in `preferences.json`.
+
+**`Check: IsInteractiveInstall` is not optional.** The self-updater runs the installer with
+`/SILENT /RELAUNCH`, and in silent mode Inno falls back to *default* task selection — which
+would silently re-enable startup for a user who turned it off in the app. The check skips
+both lines whenever `WizardSilent()` is true, so an update never touches the user's choice.
+
+On an interactive upgrade, `CurPageChanged(wpSelectTasks)` pre-sets the checkbox from the
+actual Run value instead of Inno's remembered task state (same reason: the app may have
+changed it since). A fresh install is left alone, so the task stays checked by default.
+
+```pascal
+if RegValueExists(HKEY_CURRENT_USER, '{#RunKey}', '{#AppName}') then
+  WizardSelectTasks('*startupicon')
+else if FileExists(ExpandConstant('{app}\{#AppExeName}')) then
+  WizardSelectTasks('*!startupicon');
+```
+
+Known limitation: if an administrator installs "for all users" from a *different* account
+than the one that will use BrowserMux, the Run value lands in the administrator's profile.
+The in-app toggle fixes it in one click.
+
+### Tasks (`[Tasks]`)
+
+| Task | Group | Default | Effect |
+|---|---|---|---|
+| `startupicon` | Additional tasks: | checked | Writes the `Run` value (see above) |
+| `desktopicon` | Additional shortcuts: | unchecked | Desktop shortcut |
 
 ### Shortcuts (`[Icons]`)
 
@@ -125,8 +171,17 @@ automatically. Each top-level key has `Flags: uninsdeletekey` so uninstall clean
 
 ### After install (`[Run]`)
 
-- Optional postinstall step (unchecked by default): opens `ms-settings:defaultapps` so the
-  user can pick BrowserMux as their default browser.
+Two checkboxes on the Finished page, both checked by default, in this order:
+
+1. **Start BrowserMux now** — runs `{app}\BrowserMux.exe` with `nowait skipifsilent
+   runasoriginaluser`. No URL argument, so the app goes straight to the tray with no window.
+   `runasoriginaluser` matters for an "all users" install: the app must run as the
+   signed-in user, not as the elevating admin.
+2. **Open Default Apps settings** — opens `ms-settings:defaultapps` so the user can pick
+   BrowserMux as their default browser.
+
+A third, hidden entry (`Check: WantsSilentRelaunch`) restarts the app after a silent
+self-update. See [auto-update.md](auto-update.md).
 - We **never** write to `HKCU\...\UserChoice` directly — Windows 10 1903+ verifies it with a
   hash and silently reverts unauthorized writes. Going through Settings is the only reliable
   way (the OS computes the hash itself).
@@ -248,6 +303,7 @@ The same icon is reused for `UninstallDisplayIcon`, the registered browser icon
 #define AppExeName   "BrowserMux.exe"
 #define HandlerExe   "BrowserMux.Handler.exe"
 #define ProgId       "BrowserMuxURL"
+#define RunKey       "Software\Microsoft\Windows\CurrentVersion\Run"
 ```
 
 `AppId={B8A2F3E1-7C4D-4A5B-9E6F-1D2C3B4A5E6F}` — fixed GUID, **never change** (it's how
@@ -295,10 +351,12 @@ These could be added later if needed:
 - **Wizard branding images** — no custom `WizardImageFile` / `WizardSmallImageFile`
   - These are the side banner and small bitmap in the corner of the wizard
   - BMP only, sized 164×314 and 55×58 respectively
-- **Auto-update** — not implemented; would need a release server + an in-app updater that
-  downloads and runs the new installer silently. Out of scope for now.
 - **`InfoBeforeFile` / `InfoAfterFile`** — extra readme pages in the wizard. Skipped to keep
   the wizard short; the LICENSE page is enough.
+
+Auto-update **is** implemented and drives this installer: the in-app updater downloads the
+new setup and runs it with `/SILENT /RELAUNCH`. See [auto-update.md](auto-update.md), and
+the `WantsSilentRelaunch` entry in [After install](#after-install-run).
 
 ---
 
@@ -348,4 +406,5 @@ improved later by parsing `dotnet --list-runtimes` output instead of just checki
 | `dist/` | Compiled installer `.exe` (gitignored) |
 | `src/BrowserMux.App/Assets/AppIcon.ico` | Icon used by setup, the app, the handler, and the ProgId |
 | `src/BrowserMux.Core/AppInfo.cs` | Centralized app name + paths (must stay in sync with `setup.iss` `#define`s) |
+| `src/BrowserMux.Core/Services/StartupRegistration.cs` | Runtime owner of the same `Run` value the `startupicon` task writes |
 | `register.ps1` | Dev-only equivalent: registers BrowserMux in HKCU without running the installer |

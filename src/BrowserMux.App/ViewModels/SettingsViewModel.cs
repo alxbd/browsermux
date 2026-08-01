@@ -24,6 +24,13 @@ public sealed partial class SettingsViewModel : ObservableObject
     private int _themeIndex;
 
     [ObservableProperty]
+    private bool _startWithWindows;
+
+    /// <summary>Non-empty when the last startup registry write failed. Shown on the card.</summary>
+    [ObservableProperty]
+    private string _startupError = "";
+
+    [ObservableProperty]
     private bool _alwaysOnTop;
 
     [ObservableProperty]
@@ -83,6 +90,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         BuildBrowserOptions();
 
         ThemeIndex = (int)Settings.Theme;
+        // Read from the registry, not from preferences — the Run key is the only state,
+        // so the toggle always shows what Windows will actually do.
+        StartWithWindows = StartupRegistration.IsEnabled();
+        StartupError = "";
         AlwaysOnTop = Settings.AlwaysOnTop;
         CloseOnFocusLoss = Settings.CloseOnFocusLoss;
         DetectChromiumProfiles = Settings.DetectChromiumProfiles;
@@ -109,6 +120,26 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     partial void OnThemeIndexChanged(int value)
     { if (_loading) return; Settings.Theme = (AppTheme)value; Save(); }
+
+    partial void OnStartWithWindowsChanged(bool value)
+    {
+        if (_loading) return;
+
+        if (value ? StartupRegistration.Enable() : StartupRegistration.Disable())
+        {
+            StartupError = "";
+            return;
+        }
+
+        // The registry write failed: surface it and put the toggle back where it was.
+        StartupError = value
+            ? "Could not add BrowserMux to Windows startup. See the log for details."
+            : "Could not remove BrowserMux from Windows startup. See the log for details.";
+
+        _loading = true;
+        StartWithWindows = !value;
+        _loading = false;
+    }
 
     partial void OnAlwaysOnTopChanged(bool value)
     { if (_loading) return; Settings.AlwaysOnTop = value; Save(); }

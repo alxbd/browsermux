@@ -87,6 +87,8 @@ public sealed partial class SettingsWindow : Window
 
         // General settings
         ThemeCombo.SelectedIndex = ViewModel.ThemeIndex;
+        StartWithWindowsToggle.IsOn = ViewModel.StartWithWindows;
+        ShowStartupError();
         AlwaysOnTopToggle.IsOn = ViewModel.AlwaysOnTop;
         CloseOnFocusLossToggle.IsOn = ViewModel.CloseOnFocusLoss;
         DetectProfilesToggle.IsOn = ViewModel.DetectChromiumProfiles;
@@ -158,6 +160,28 @@ public sealed partial class SettingsWindow : Window
 
     private void ThemeCombo_Changed(object s, SelectionChangedEventArgs e)
     { if (!_syncing) ViewModel.ThemeIndex = ThemeCombo.SelectedIndex; }
+
+    private void StartWithWindowsToggle_Toggled(object s, RoutedEventArgs e)
+    {
+        if (_syncing) return;
+
+        ViewModel.StartWithWindows = StartWithWindowsToggle.IsOn;
+
+        // The VM reverts itself when the registry write fails — mirror that back to the UI.
+        _syncing = true;
+        StartWithWindowsToggle.IsOn = ViewModel.StartWithWindows;
+        _syncing = false;
+
+        ShowStartupError();
+    }
+
+    private void ShowStartupError()
+    {
+        StartupErrorText.Text = ViewModel.StartupError;
+        StartupErrorText.Visibility = string.IsNullOrEmpty(ViewModel.StartupError)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
 
     private void AlwaysOnTopToggle_Toggled(object s, RoutedEventArgs e)
     { if (!_syncing) ViewModel.AlwaysOnTop = AlwaysOnTopToggle.IsOn; }

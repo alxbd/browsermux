@@ -15,6 +15,7 @@
 #define AppExeName   "BrowserMux.exe"
 #define HandlerExe   "BrowserMux.Handler.exe"
 #define ProgId       "BrowserMuxURL"
+#define RunKey       "Software\Microsoft\Windows\CurrentVersion\Run"
 
 [Setup]
 AppId={{B8A2F3E1-7C4D-4A5B-9E6F-1D2C3B4A5E6F}
@@ -45,9 +46,10 @@ RestartApplications=no
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-FinishedLabel=Setup has finished installing [name] on your computer.%n%nTo finish, you need to set BrowserMux as your default browser in Windows Settings. Leave the box below checked and click Finish — Windows Default Apps will open. Find "Web browser" (or search for BrowserMux) and select BrowserMux.
+FinishedLabel=Setup has finished installing [name] on your computer.%n%nTo finish, you need to set BrowserMux as your default browser in Windows Settings. Leave the boxes below checked and click Finish. Windows Default Apps will open: find "Web browser" (or search for BrowserMux) and select BrowserMux.
 
 [Tasks]
+Name: "startupicon"; Description: "Start {#AppName} with Windows"; GroupDescription: "Additional tasks:"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Files]
@@ -79,7 +81,19 @@ Root: HKA; Subkey: "Software\Clients\StartMenuInternet\{#AppName}\Capabilities\U
 ; --- RegisteredApplications: makes it visible in Windows Settings > Default Apps ---
 Root: HKA; Subkey: "Software\RegisteredApplications"; ValueType: string; ValueName: "{#AppName}"; ValueData: "Software\Clients\StartMenuInternet\{#AppName}\Capabilities"; Flags: uninsdeletevalue
 
+; --- Start with Windows ---
+; Always HKCU, never HKA: the entry must stay per-user so the in-app toggle
+; (Settings > General) can change it without admin rights.
+; IsInteractiveInstall skips both lines on silent runs — the self-updater passes /SILENT,
+; where Inno falls back to default task selection and would otherwise silently re-enable
+; startup for a user who turned it off in the app.
+Root: HKCU; Subkey: "{#RunKey}"; ValueType: string; ValueName: "{#AppName}"; ValueData: """{app}\{#AppExeName}"""; Flags: uninsdeletevalue; Tasks: startupicon;     Check: IsInteractiveInstall
+Root: HKCU; Subkey: "{#RunKey}"; ValueType: none;   ValueName: "{#AppName}";                                      Flags: deletevalue;      Tasks: not startupicon; Check: IsInteractiveInstall
+
 [Run]
+; Start the app right after install (Finished page checkbox, checked by default).
+; runasoriginaluser matters for an "all users" install: the app must run as the signed-in user.
+Filename: "{app}\{#AppExeName}"; Description: "Start {#AppName} now"; Flags: postinstall nowait skipifsilent runasoriginaluser
 ; Open default apps settings after install so user can set BrowserMux as default
 Filename: "ms-settings:defaultapps"; Description: "Open Default Apps settings to set {#AppName} as default browser"; Flags: postinstall shellexec nowait skipifsilent
 ; Relaunch BrowserMux automatically when invoked by the in-app self-updater
@@ -103,6 +117,26 @@ begin
       Result := True;
       Exit;
     end;
+end;
+
+// False during silent runs (self-updater). Used to leave the "Start with Windows"
+// registry value untouched when the user is not actually looking at the wizard.
+function IsInteractiveInstall(): Boolean;
+begin
+  Result := not WizardSilent();
+end;
+
+// On an upgrade, the Tasks checkbox must reflect reality (the Run value) rather than
+// Inno's remembered task state — the user may have toggled startup off inside the app.
+// On a fresh install nothing is overridden, so the task stays checked by default.
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if CurPageID <> wpSelectTasks then Exit;
+
+  if RegValueExists(HKEY_CURRENT_USER, '{#RunKey}', '{#AppName}') then
+    WizardSelectTasks('*startupicon')
+  else if FileExists(ExpandConstant('{app}\{#AppExeName}')) then
+    WizardSelectTasks('*!startupicon');
 end;
 
 // Detect .NET 9 Desktop Runtime by scanning the standard install folders.

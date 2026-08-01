@@ -36,6 +36,26 @@
             <StackPanel x:Name="GeneralPanel" Spacing="4">
                 <TextBlock Text="General Settings" Style="{StaticResource SubtitleTextBlockStyle}" Margin="0,0,0,12" />
 
+                <!-- Start with Windows -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="4" Padding="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <FontIcon Grid.Column="0" Glyph="&#xE945;" Margin="0,0,16,0" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Start with Windows" />
+                            <TextBlock Text="Launch in the background when Windows starts" FontSize="12" Opacity="0.5" />
+                            <TextBlock x:Name="StartupErrorText" FontSize="12" Margin="0,4,0,0"
+                                       Foreground="#E81123"
+                                       TextWrapping="Wrap" Visibility="Collapsed" />
+                        </StackPanel>
+                        <ToggleSwitch x:Name="StartWithWindowsToggle" Grid.Column="2" Toggled="StartWithWindowsToggle_Toggled" MinWidth="0" />
+                    </Grid>
+                </Border>
+
                 <!-- Theme -->
                 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="4" Padding="16,12">
                     <Grid>

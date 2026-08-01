@@ -34,21 +34,21 @@ public partial class App : Application
         _singleInstanceMutex = new Mutex(true, AppInfo.MutexName, out bool isOwned);
         if (!isOwned)
         {
-            var cmdArgs = Environment.GetCommandLineArgs();
-            var url = cmdArgs.Length > 1 ? cmdArgs[1] : null;
-            if (url is not null)
+            if (GetLaunchUrl() is { } url)
                 _ = TrySendUrlToPipe(url);
             Exit();
             return;
         }
 
-        var launchArgs = Environment.GetCommandLineArgs();
-        var launchUrl = launchArgs.Length > 1 ? launchArgs[1] : null;
+        var launchUrl = GetLaunchUrl();
 
         _pickerWindow = new PickerWindow();
 
         if (launchUrl is not null)
             _pickerWindow.ShowForUrl(launchUrl);
+
+        // Keep the "Start with Windows" entry pointing at this exe (moved/reinstalled app).
+        StartupRegistration.RepairIfNeeded();
 
         SetupTrayIcon();
         SetupLauncherHotkey();
@@ -61,6 +61,20 @@ public partial class App : Application
         _pipeCts = new CancellationTokenSource();
         _ = StartPipeServerAsync(_pipeCts.Token);
         _ = CheckForUpdatesOnStartupAsync();
+    }
+
+    /// <summary>First CLI argument, but only when it is a real http/https URL. The startup
+    /// entry passes no argument; this makes sure a stray one can never drive the picker.</summary>
+    private static string? GetLaunchUrl()
+    {
+        var args = Environment.GetCommandLineArgs();
+        if (args.Length < 2) return null;
+
+        var candidate = args[1];
+        if (!Uri.TryCreate(candidate, UriKind.Absolute, out var uri)) return null;
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return null;
+
+        return candidate;
     }
 
     private static async Task CheckForUpdatesOnStartupAsync()
