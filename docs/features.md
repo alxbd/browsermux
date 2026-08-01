@@ -104,7 +104,7 @@ Rules live in `%LOCALAPPDATA%\BrowserMux\rules.json` with a schema version and m
 ## Browser detection
 
 ### Registry scan
-Reads `SOFTWARE\Clients\StartMenuInternet\*` from both HKCU and HKLM to discover installed browsers.
+Reads `SOFTWARE\Clients\StartMenuInternet\*` from both HKCU and HKLM to discover installed browsers. BrowserMux registers itself there so Windows can offer it as the default browser, so `BrowserMux.exe` and `BrowserMux.Handler.exe` are filtered out of the results by file name. Other link routers (Hurl, BrowserSelect) are kept: they are legitimate targets.
 
 ### App Paths fallback
 Scans `App Paths` for Firefox, Opera, Whale and other browsers not registered as StartMenuInternet clients (catches some Store/MSIX installs).

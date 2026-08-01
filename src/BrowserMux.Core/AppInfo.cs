@@ -73,6 +73,10 @@ public static class AppInfo
     /// AssemblyName drives this and we don't want to rename the binary.</summary>
     public const string AppExeName = "BrowserMux.exe";
 
+    /// <summary>AOT handler exe name (without path). Registered as the URL handler, so
+    /// BrowserDetector has to recognize it to avoid detecting us as a browser.</summary>
+    public const string HandlerExeName = "BrowserMux.Handler.exe";
+
     /// <summary>GitHub owner/repo for release checks.</summary>
     public const string GitHubRepo = "alxbd/browsermux";
 

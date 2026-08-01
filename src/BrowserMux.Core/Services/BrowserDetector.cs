@@ -41,6 +41,11 @@ public static class BrowserDetector
         // 1. Read from Windows registry (StartMenuInternet)
         foreach (var browser in ReadFromRegistry())
         {
+            if (IsSelf(browser.ExePath))
+            {
+                AppLogger.Info($"  [skip] own executable → {browser.ExePath}");
+                continue;
+            }
             if (seen.Add(browser.ExePath))
             {
                 AppLogger.Info($"  [registry] {browser.Name} → {browser.ExePath}");
@@ -51,6 +56,7 @@ public static class BrowserDetector
         // 2. Fallback App Paths — catches Store browsers (e.g. Firefox MSIX)
         foreach (var browser in ReadFromAppPaths())
         {
+            if (IsSelf(browser.ExePath)) continue;
             if (seen.Add(browser.ExePath))
             {
                 AppLogger.Info($"  [apppaths] {browser.Name} → {browser.ExePath}");
@@ -86,6 +92,22 @@ public static class BrowserDetector
 
         AppLogger.Info($"=== Detect() done — {browsers.Count} browser(s) total ===");
         return browsers;
+    }
+
+    /// <summary>
+    /// True for our own executables. BrowserMux registers itself under StartMenuInternet so
+    /// Windows can offer it as the default browser, which means a plain registry scan finds
+    /// it and the picker would offer to open links with itself.
+    ///
+    /// Matched on file name, not full path: a leftover registration from a previous install
+    /// location (or the other build channel, which ships the same exe names) is just as
+    /// circular and has to go too.
+    /// </summary>
+    private static bool IsSelf(string exePath)
+    {
+        var name = Path.GetFileName(exePath);
+        return name.Equals(AppInfo.AppExeName, StringComparison.OrdinalIgnoreCase)
+            || name.Equals(AppInfo.HandlerExeName, StringComparison.OrdinalIgnoreCase);
     }
 
     private static IEnumerable<Browser> ReadFromRegistry()
