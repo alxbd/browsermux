@@ -7,7 +7,7 @@ description: Windows 10 compatibility checklist for BrowserMux. Use this skill w
 
 BrowserMux targets **Windows 10 1809 (build 17763) and later**, including all Win11.
 Win10 is a first-class target, not best-effort. The floor is dictated by Windows App
-SDK 1.7 (which itself requires 1809+).
+SDK, which itself still supports 1809+ on the 2.x line.
 
 ## Rules
 
@@ -32,10 +32,17 @@ SDK 1.7 (which itself requires 1809+).
 - **Unsafe**: `F0xx`–`F8xx` — generally Segoe Fluent Icons-only, renders as tofu on Win10.
 - Search the glyph in both font lists (MDL2 + Fluent) before committing.
 
-### WinAppSDK 1.7 is the floor
-- The installer downloads and installs the WinAppSDK 1.7 runtime on the fly via the
-  bootstrapper (see `docs/installer-inno.md`).
-- **Never** bump the target to 1.8+ without verifying the new minimum OS build.
+### WinAppSDK version
+- Currently **2.3.1**. The installer downloads and installs the matching runtime on the fly
+  (see `docs/installer-inno.md`).
+- **Never** bump without first verifying the new minimum OS build on
+  [release-channels](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/release-channels).
+  As of 2.3 the SDK still supports Windows 10 1809, so the floor is unchanged.
+- Check the support table on that page while you are there: 1.7 was left in the codebase five
+  months past its end of servicing (2026-03-18) before anyone noticed.
+- A bump is never just the PackageReference. `setup.iss` carries the runtime channel, package
+  name and minimum version, and the 2.x package naming differs from 1.x. See
+  `docs/installer-inno.md`.
 
 ### `ms-settings:` layout differences
 - `ms-settings:defaultapps` works on both Win10 and Win11.

@@ -21,6 +21,11 @@
 ; 1.0.0, 1.0.1 and 1.0.2 all shipped without the handler.
 ; Not touched by scripts/set-version.ps1 — it is a fact about the past, not the version.
 #define FirstSelfClosingVersion "1.0.3"
+; Windows App SDK runtime the app is built against. Keep in sync with the
+; Microsoft.WindowsAppSDK PackageReference in src/BrowserMux.App/BrowserMux.App.csproj.
+#define WinAppRuntimeChannel    "2.3"
+#define WinAppRuntimePackage    "Microsoft.WindowsAppRuntime.2"
+#define WinAppRuntimeMinVersion "2.3.0.0"
 
 [Setup]
 AppId={{B8A2F3E1-7C4D-4A5B-9E6F-1D2C3B4A5E6F}
@@ -200,9 +205,16 @@ begin
   DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), nil);
 end;
 
-// Windows App SDK 1.7 runtime is delivered as MSIX framework packages.
-// We detect it by checking for the registered package family via PowerShell.
-function IsWindowsAppRuntime17Installed(): Boolean;
+// The Windows App SDK runtime is delivered as MSIX framework packages, detected through
+// PowerShell. Two things changed with the 2.x line and both bite silently:
+//   - the package is named Microsoft.WindowsAppRuntime.2, with no minor suffix. The 1.x
+//     scheme was Microsoft.WindowsAppRuntime.1.7, so "...2.3" finds nothing and we would
+//     reinstall the runtime on every single run.
+//   - one package now covers the whole 2.x line, so presence alone is not enough: a machine
+//     can carry 2.2.0.0 while we need {#WinAppRuntimeMinVersion}. The version is compared,
+//     not just looked for.
+// PowerShell does the comparison and prints OK, which keeps the Pascal side to a substring test.
+function IsWindowsAppRuntimeInstalled(): Boolean;
 var
   ResultCode: Integer;
   TmpFile: String;
@@ -213,13 +225,13 @@ begin
   TmpFile := ExpandConstant('{tmp}\war_check.txt');
   // Get-AppxPackage is per-user; the framework package is provisioned globally so this still finds it.
   if Exec(ExpandConstant('{cmd}'),
-          '/c powershell -NoProfile -Command "Get-AppxPackage -Name Microsoft.WindowsAppRuntime.1.7 | Select-Object -ExpandProperty Version" > "' + TmpFile + '" 2>&1',
+          '/c powershell -NoProfile -Command "$v = (Get-AppxPackage -Name {#WinAppRuntimePackage} | ForEach-Object { [version]$_.Version } | Sort-Object -Descending | Select-Object -First 1); if ($v -and $v -ge [version]''{#WinAppRuntimeMinVersion}'') { ''OK'' }" > "' + TmpFile + '" 2>&1',
           '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
   begin
     if LoadStringsFromFile(TmpFile, Lines) then
     begin
       for I := 0 to GetArrayLength(Lines) - 1 do
-        if Trim(Lines[I]) <> '' then
+        if Trim(Lines[I]) = 'OK' then
         begin
           Result := True;
           Break;
@@ -254,14 +266,14 @@ begin
   if CurPageID <> wpReady then Exit;
 
   NeedDotNet := not IsDotNet9DesktopInstalled();
-  NeedWAR    := not IsWindowsAppRuntime17Installed();
+  NeedWAR    := not IsWindowsAppRuntimeInstalled();
   if not (NeedDotNet or NeedWAR) then Exit;
 
   DownloadPage.Clear;
   if NeedDotNet then
     DownloadPage.Add('https://aka.ms/dotnet/9.0/windowsdesktop-runtime-win-x64.exe', 'windowsdesktop-runtime-9-x64.exe', '');
   if NeedWAR then
-    DownloadPage.Add('https://aka.ms/windowsappsdk/1.7/latest/windowsappruntimeinstall-x64.exe', 'WindowsAppRuntimeInstall-x64.exe', '');
+    DownloadPage.Add('https://aka.ms/windowsappsdk/{#WinAppRuntimeChannel}/latest/windowsappruntimeinstall-x64.exe', 'WindowsAppRuntimeInstall-x64.exe', '');
 
   DownloadPage.Show;
   try
@@ -274,7 +286,7 @@ begin
           Exit;
         end;
       if NeedWAR then
-        if not RunInstaller('WindowsAppRuntimeInstall-x64.exe', '--quiet', 'Windows App Runtime 1.7') then
+        if not RunInstaller('WindowsAppRuntimeInstall-x64.exe', '--quiet', 'Windows App Runtime {#WinAppRuntimeChannel}') then
         begin
           Result := False;
           Exit;

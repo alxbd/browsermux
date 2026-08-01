@@ -58,7 +58,7 @@ variables in `build.ps1` and `register.ps1` (see "keep in sync" comment at the t
 
 | Component | Choice | Reason |
 |---|---|---|
-| UI | **WinUI 3** (Windows App SDK 1.7) | Fluent Design, Mica, native Windows 11 |
+| UI | **WinUI 3** (Windows App SDK 2.3) | Fluent Design, Mica, native Windows 11 |
 | Language | **C# / .NET 9** | Registry, Windows APIs, WinUI 3 |
 | Handler exe | **C# AOT** (`PublishAot=true`) | Startup < 50ms, no runtime required |
 | IPC | **Named Pipe** `\\.\pipe\BrowserMuxPipe` | Single-instance, standard Windows |

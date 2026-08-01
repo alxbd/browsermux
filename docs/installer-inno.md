@@ -46,10 +46,11 @@ nothing is bundled, the installer stays small (~9 MB).
   - If missing, downloaded silently from
     `https://aka.ms/dotnet/9.0/windowsdesktop-runtime-win-x64.exe` and installed with
     `/install /quiet /norestart`
-- **Windows App SDK 1.7 Runtime (x64)** — required by WinUI 3, not preinstalled on Windows 10
-  - Detected via `Get-AppxPackage Microsoft.WindowsAppRuntime.1.7`
-  - If missing, downloaded from
-    `https://aka.ms/windowsappsdk/1.7/latest/windowsappruntimeinstall-x64.exe` and installed
+- **Windows App SDK 2.3 Runtime (x64)** — required by WinUI 3, not preinstalled on Windows 10
+  - Detected via `Get-AppxPackage Microsoft.WindowsAppRuntime.2`, comparing the highest
+    installed version against `{#WinAppRuntimeMinVersion}`
+  - If missing or too old, downloaded from
+    `https://aka.ms/windowsappsdk/2.3/latest/windowsappruntimeinstall-x64.exe` and installed
     with `--quiet`
 
 Both downloads happen on the **"Ready to install"** wizard page via Inno Setup 6.1+'s built-in
@@ -250,16 +251,29 @@ function IsDotNet9DesktopInstalled(): Boolean;
 Scans `{commonpf}\dotnet\shared\Microsoft.WindowsDesktop.App` for any `9.*` subfolder. We do
 not shell out to `dotnet --list-runtimes` because the CLI is not always on `PATH`.
 
-### Windows App SDK 1.7
+### Windows App SDK runtime
 
 ```pascal
-function IsWindowsAppRuntime17Installed(): Boolean;
+function IsWindowsAppRuntimeInstalled(): Boolean;
 ```
 
-Runs `Get-AppxPackage -Name Microsoft.WindowsAppRuntime.1.7` via PowerShell, captures stdout
-to a temp file, and considers the package installed if any non-empty version line comes back.
-The framework MSIX is provisioned globally, so a per-user `Get-AppxPackage` query still finds
-it.
+Runs a PowerShell one-liner that takes the highest installed version of
+`{#WinAppRuntimePackage}`, compares it against `{#WinAppRuntimeMinVersion}` and prints `OK`,
+captured to a temp file. The framework MSIX is provisioned globally, so a per-user
+`Get-AppxPackage` query still finds it.
+
+Two traps in the 2.x line, both silent if you get them wrong:
+
+- **The package lost its minor suffix.** 1.x used `Microsoft.WindowsAppRuntime.1.7`; 2.x is
+  just `Microsoft.WindowsAppRuntime.2`. Querying `...2.3` matches nothing, and the installer
+  would redownload the runtime on every run.
+- **One package name covers the whole 2.x line, with versions side by side.** A real machine
+  can carry 2.2.0.0, 2.3.0.0 and 2.3.1.0 at once. Presence alone proves nothing, hence the
+  version comparison rather than a non-empty test.
+
+Bumping the SDK means changing three defines at the top of `setup.iss`
+(`WinAppRuntimeChannel`, `WinAppRuntimePackage`, `WinAppRuntimeMinVersion`) and the
+`Microsoft.WindowsAppSDK` PackageReference together.
 
 ### Download flow
 
@@ -269,7 +283,7 @@ prerequisites and queue only the missing installers:
 | Missing | URL queued | Args |
 |---|---|---|
 | .NET 9 Desktop Runtime | `https://aka.ms/dotnet/9.0/windowsdesktop-runtime-win-x64.exe` | `/install /quiet /norestart` |
-| Windows App Runtime 1.7 | `https://aka.ms/windowsappsdk/1.7/latest/windowsappruntimeinstall-x64.exe` | `--quiet` |
+| Windows App Runtime 2.3 | `https://aka.ms/windowsappsdk/2.3/latest/windowsappruntimeinstall-x64.exe` | `--quiet` |
 
 `DownloadPage.Download` runs the built-in downloader (with progress bar + cancel). Each
 installer is then executed via `Exec`; exit codes `0`, `1641`, `3010` are accepted, anything
