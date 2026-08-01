@@ -351,7 +351,7 @@ The same icon is reused for `UninstallDisplayIcon`, the registered browser icon
 #define HandlerExe   "BrowserMux.Handler.exe"
 #define ProgId       "BrowserMuxURL"
 #define RunKey       "Software\Microsoft\Windows\CurrentVersion\Run"
-#define FirstSelfClosingVersion "1.0.1"
+#define FirstSelfClosingVersion "1.0.3"
 ```
 
 `AppId={B8A2F3E1-7C4D-4A5B-9E6F-1D2C3B4A5E6F}` — fixed GUID, **never change** (it's how

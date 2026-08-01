@@ -18,8 +18,9 @@
 #define RunKey       "Software\Microsoft\Windows\CurrentVersion\Run"
 ; First release that answers WM_QUERYENDSESSION / WM_ENDSESSION, i.e. that lets the
 ; Restart Manager close it. Older installs have to be terminated (see PrepareToInstall).
+; 1.0.0, 1.0.1 and 1.0.2 all shipped without the handler.
 ; Not touched by scripts/set-version.ps1 — it is a fact about the past, not the version.
-#define FirstSelfClosingVersion "1.0.1"
+#define FirstSelfClosingVersion "1.0.3"
 
 [Setup]
 AppId={{B8A2F3E1-7C4D-4A5B-9E6F-1D2C3B4A5E6F}
