@@ -44,6 +44,10 @@ public partial class App : Application
 
         _pickerWindow = new PickerWindow();
 
+        // The picker is our only permanent top-level window, so it is where Windows sends
+        // end-session requests (installer, Windows Update, logoff).
+        SessionEndHandler.Attach(WinRT.Interop.WindowNative.GetWindowHandle(_pickerWindow), ShutdownNow);
+
         if (launchUrl is not null)
             _pickerWindow.ShowForUrl(launchUrl);
 
@@ -61,6 +65,22 @@ public partial class App : Application
         _pipeCts = new CancellationTokenSource();
         _ = StartPipeServerAsync(_pipeCts.Token);
         _ = CheckForUpdatesOnStartupAsync();
+    }
+
+    /// <summary>
+    /// Ends the process, for real. Closing the windows is not enough — the picker cancels
+    /// WM_CLOSE to hide into the tray — and whoever asked us to quit (the Restart Manager
+    /// during an install, Windows at logoff, our own self-updater) waits for the process to
+    /// disappear. Call it on the UI thread: it disposes the tray icon so no ghost is left
+    /// behind in the notification area.
+    /// </summary>
+    internal void ShutdownNow()
+    {
+        AppLogger.Info("[App] Shutting down");
+        try { _trayIcon?.Dispose(); }     catch { }
+        try { _hotkeyService?.Dispose(); } catch { }
+        _pipeCts?.Cancel();
+        Environment.Exit(0);
     }
 
     /// <summary>First CLI argument, but only when it is a real http/https URL. The startup
@@ -110,8 +130,7 @@ public partial class App : Application
                 new PopupMenuSeparator(),
                 new PopupMenuItem("Exit", (_, _) =>
                 {
-                    _trayIcon?.Dispose();
-                    _pickerWindow?.DispatcherQueue.TryEnqueue(Exit);
+                    _pickerWindow?.DispatcherQueue.TryEnqueue(ShutdownNow);
                 }),
             }
         };

@@ -412,15 +412,14 @@ public sealed partial class SettingsWindow : Window
             // /SILENT shows a small progress window with no prompts; /SUPPRESSMSGBOXES
             // accepts default answers; /NORESTART avoids surprise reboots; /RELAUNCH is
             // a custom switch our setup.iss watches for to relaunch BrowserMux after
-            // install. We exit ourselves before launching because the PickerWindow's
-            // Closing handler cancels WM_CLOSE (to hide instead of close), which
-            // prevents Inno Setup's CloseApplications from terminating the process.
+            // install. We quit ourselves right away rather than making Setup ask: it is
+            // faster, and it removes the tray icon cleanly before the files are replaced.
             Process.Start(new ProcessStartInfo(path)
             {
                 UseShellExecute = true,
                 Arguments = "/SILENT /SUPPRESSMSGBOXES /NORESTART /RELAUNCH",
             });
-            Application.Current.Exit();
+            (Application.Current as App)?.ShutdownNow();
         }
         else
         {
