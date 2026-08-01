@@ -21,10 +21,10 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v3
 
-      - name: Setup .NET 9
+      - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       # Extract version from tag (v1.2.3 -> 1.2.3)
       - name: Set version
@@ -52,11 +52,11 @@ jobs:
           New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
           # Copy App build output (glob the TFM folder so bumping it doesn't break the workflow)
-          $appBin = Get-ChildItem "src\BrowserMux.App\bin\x64\Release\net9.0-windows*" -Directory | Select-Object -First 1
+          $appBin = Get-ChildItem "src\BrowserMux.App\bin\x64\Release\net*-windows*" -Directory | Select-Object -First 1
           Copy-Item "$($appBin.FullName)\*" -Destination $outDir -Recurse -Force
 
           # Overwrite Handler with AOT-published binary
-          $handlerPublish = (Get-ChildItem "src\BrowserMux.Handler\bin\x64\Release\net9.0-windows*\win-x64\publish\BrowserMux.Handler.exe" | Select-Object -First 1).FullName
+          $handlerPublish = (Get-ChildItem "src\BrowserMux.Handler\bin\x64\Release\net*-windows*\win-x64\publish\BrowserMux.Handler.exe" | Select-Object -First 1).FullName
           Copy-Item $handlerPublish -Destination $outDir -Force
 
       # Build Inno Setup installer

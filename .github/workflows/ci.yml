@@ -15,10 +15,10 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v3
 
-      - name: Setup .NET 9
+      - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore
         run: msbuild BrowserMux.sln /t:Restore /p:Configuration=Release /p:Platform=x64 /m /nologo /verbosity:minimal

@@ -72,7 +72,7 @@ This applies to every project in the solution (App, Handler, Core) since
 `Directory.Build.props` is inherited. Verify with:
 
 ```powershell
-(Get-Item "src\BrowserMux.App\bin\x64\Debug\net9.0-windows10.0.22621.0\BrowserMux.exe").VersionInfo |
+(Get-Item "src\BrowserMux.App\bin\x64\Debug\net10.0-windows10.0.22621.0\BrowserMux.exe").VersionInfo |
     Format-List FileDescription, ProductName
 ```
 
@@ -98,8 +98,8 @@ display names in their version info but the same filename. That's by design.
 
 | Element | Path / value |
 |---|---|
-| Binary | `src/BrowserMux.App/bin/x64/Debug/net9.0-windows10.0.22621.0/BrowserMux.exe` |
-| Handler | `src/BrowserMux.Handler/bin/x64/Debug/net9.0-windows10.0.22621.0/BrowserMux.Handler.exe` |
+| Binary | `src/BrowserMux.App/bin/x64/Debug/net10.0-windows10.0.22621.0/BrowserMux.exe` |
+| Handler | `src/BrowserMux.Handler/bin/x64/Debug/net10.0-windows10.0.22621.0/BrowserMux.Handler.exe` |
 | Settings | `%LOCALAPPDATA%\BrowserMux Dev\preferences.json` |
 | Rules | `%LOCALAPPDATA%\BrowserMux Dev\rules.json` |
 | Logs | `%LOCALAPPDATA%\BrowserMux Dev\logs\app.log` |

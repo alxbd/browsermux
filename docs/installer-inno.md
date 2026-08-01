@@ -41,10 +41,10 @@ pwsh build.ps1 -Config Release
 Both prerequisites are **detected and downloaded on the fly** by the installer if missing —
 nothing is bundled, the installer stays small (~9 MB).
 
-- **.NET 9 Desktop Runtime (x64)**
-  - Detected by scanning `{commonpf}\dotnet\shared\Microsoft.WindowsDesktop.App\9.*`
+- **.NET 10 Desktop Runtime (x64)**
+  - Detected by scanning `{commonpf}\dotnet\shared\Microsoft.WindowsDesktop.App\10.*`
   - If missing, downloaded silently from
-    `https://aka.ms/dotnet/9.0/windowsdesktop-runtime-win-x64.exe` and installed with
+    `https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe` and installed with
     `/install /quiet /norestart`
 - **Windows App SDK 2.3 Runtime (x64)** — required by WinUI 3, not preinstalled on Windows 10
   - Detected via `Get-AppxPackage Microsoft.WindowsAppRuntime.2`, comparing the highest
@@ -242,13 +242,13 @@ All logic lives in the `[Code]` section of `setup.iss`. Two helpers detect the p
 and `NextButtonClick(wpReady)` downloads + installs whatever is missing right before files are
 copied.
 
-### .NET 9 Desktop Runtime
+### .NET 10 Desktop Runtime
 
 ```pascal
-function IsDotNet9DesktopInstalled(): Boolean;
+function IsDotNetDesktopInstalled(): Boolean;
 ```
 
-Scans `{commonpf}\dotnet\shared\Microsoft.WindowsDesktop.App` for any `9.*` subfolder. We do
+Scans `{commonpf}\dotnet\shared\Microsoft.WindowsDesktop.App` for any `10.*` subfolder. We do
 not shell out to `dotnet --list-runtimes` because the CLI is not always on `PATH`.
 
 ### Windows App SDK runtime
@@ -282,7 +282,7 @@ prerequisites and queue only the missing installers:
 
 | Missing | URL queued | Args |
 |---|---|---|
-| .NET 9 Desktop Runtime | `https://aka.ms/dotnet/9.0/windowsdesktop-runtime-win-x64.exe` | `/install /quiet /norestart` |
+| .NET 10 Desktop Runtime | `https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe` | `/install /quiet /norestart` |
 | Windows App Runtime 2.3 | `https://aka.ms/windowsappsdk/2.3/latest/windowsappruntimeinstall-x64.exe` | `--quiet` |
 
 `DownloadPage.Download` runs the built-in downloader (with progress bar + cancel). Each
@@ -447,9 +447,9 @@ Inno's Pascal is strict. Common mistakes:
   appear, the `RegisteredApplications` entry didn't write
 - Make sure `out\` was actually populated (re-run `build.ps1 -Config Release`)
 
-### .NET 9 detection false negative
+### .NET 10 detection false negative
 
-The `IsDotNet9Installed()` check is best-effort. If a user already has .NET 9 but the check
+The `IsDotNetDesktopInstalled()` check is best-effort. If a user already has .NET 10 but the check
 fails, they'll see the prompt. Worst case: they cancel, click Yes, get redirected to a page
 they don't need, install nothing, and re-run. Not destructive, just annoying. Could be
 improved later by parsing `dotnet --list-runtimes` output instead of just checking exit code.

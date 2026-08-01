@@ -2,7 +2,7 @@
 ; Registers BrowserMux as a browser in Windows and installs all required files.
 ;
 ; Prerequisites:
-;   - .NET 9 Desktop Runtime (x64) must be installed on the target machine.
+;   - .NET {#DotNetChannel} Desktop Runtime (x64) must be installed on the target machine.
 ;     The installer checks and offers to download if missing.
 ;   - Windows App SDK runtime is bundled (deployed from out/).
 ;
@@ -21,6 +21,10 @@
 ; 1.0.0, 1.0.1 and 1.0.2 all shipped without the handler.
 ; Not touched by scripts/set-version.ps1 — it is a fact about the past, not the version.
 #define FirstSelfClosingVersion "1.0.3"
+; .NET Desktop Runtime the app is built against. Keep in sync with TargetFramework.
+; Channel drives the download URL, Major the installed-folder glob.
+#define DotNetChannel           "10.0"
+#define DotNetMajor             "10"
 ; Windows App SDK runtime the app is built against. Keep in sync with the
 ; Microsoft.WindowsAppSDK PackageReference in src/BrowserMux.App/BrowserMux.App.csproj.
 #define WinAppRuntimeChannel    "2.3"
@@ -175,9 +179,9 @@ begin
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM {#HandlerExe}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
-// Detect .NET 9 Desktop Runtime by scanning the standard install folders.
+// Detect the .NET Desktop Runtime by scanning the standard install folders.
 // We don't shell out to `dotnet` because the CLI is not always on PATH.
-function IsDotNet9DesktopInstalled(): Boolean;
+function IsDotNetDesktopInstalled(): Boolean;
 var
   BaseDir: String;
   FindRec: TFindRec;
@@ -186,7 +190,7 @@ begin
   BaseDir := ExpandConstant('{commonpf}\dotnet\shared\Microsoft.WindowsDesktop.App');
   if not DirExists(BaseDir) then
     Exit;
-  if FindFirst(BaseDir + '\9.*', FindRec) then
+  if FindFirst(BaseDir + '\{#DotNetMajor}.*', FindRec) then
   try
     repeat
       if (FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY) <> 0 then
@@ -265,13 +269,13 @@ begin
   Result := True;
   if CurPageID <> wpReady then Exit;
 
-  NeedDotNet := not IsDotNet9DesktopInstalled();
+  NeedDotNet := not IsDotNetDesktopInstalled();
   NeedWAR    := not IsWindowsAppRuntimeInstalled();
   if not (NeedDotNet or NeedWAR) then Exit;
 
   DownloadPage.Clear;
   if NeedDotNet then
-    DownloadPage.Add('https://aka.ms/dotnet/9.0/windowsdesktop-runtime-win-x64.exe', 'windowsdesktop-runtime-9-x64.exe', '');
+    DownloadPage.Add('https://aka.ms/dotnet/{#DotNetChannel}/windowsdesktop-runtime-win-x64.exe', 'windowsdesktop-runtime-x64.exe', '');
   if NeedWAR then
     DownloadPage.Add('https://aka.ms/windowsappsdk/{#WinAppRuntimeChannel}/latest/windowsappruntimeinstall-x64.exe', 'WindowsAppRuntimeInstall-x64.exe', '');
 
@@ -280,7 +284,7 @@ begin
     try
       DownloadPage.Download;
       if NeedDotNet then
-        if not RunInstaller('windowsdesktop-runtime-9-x64.exe', '/install /quiet /norestart', '.NET 9 Desktop Runtime') then
+        if not RunInstaller('windowsdesktop-runtime-x64.exe', '/install /quiet /norestart', '.NET {#DotNetChannel} Desktop Runtime') then
         begin
           Result := False;
           Exit;

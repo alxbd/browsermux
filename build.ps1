@@ -11,9 +11,17 @@ $appName = "BrowserMux"
 
 $root = $PSScriptRoot
 $msbuild = "C:\Program Files\Microsoft Visual Studio\18\Insiders\MSBuild\Current\Bin\MSBuild.exe"
-$appBin  = "$root\src\$appName.App\bin\x64\$Config\net9.0-windows10.0.22621.0"
 $outDir  = "$root\out"
 $exe     = "$outDir\$appName.exe"
+
+# Target framework folder is resolved by glob, never hardcoded: a TFM bump used to leave this
+# script copying from a path that no longer existed.
+function Resolve-TfmDir([string]$binRoot) {
+    $dir = Get-ChildItem "$binRoot\net*-windows*" -Directory -ErrorAction SilentlyContinue |
+           Sort-Object Name -Descending | Select-Object -First 1
+    if ($dir) { return $dir.FullName }
+    return $null
+}
 
 # Stop running instance (may need elevation if tray icon holds a handle)
 $procs = Get-Process $appName -ErrorAction SilentlyContinue
@@ -42,15 +50,24 @@ Write-Host "Build OK" -ForegroundColor Green
 
 # Deploy the full app to out/ (WinUI 3 runtime included)
 Write-Host "Deploying to $outDir ..." -ForegroundColor DarkGray
+$appBin = Resolve-TfmDir "$root\src\$appName.App\bin\x64\$Config"
+if (-not $appBin) {
+    Write-Host "DEPLOY FAILED: no build output under src\$appName.App\bin\x64\$Config" -ForegroundColor Red
+    exit 1
+}
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 Copy-Item "$appBin\*" -Destination $outDir -Recurse -Force
 
-# Copy Handler to out/ (side by side with BrowserMux.exe)
-$handlerSrc = "$root\src\$appName.Handler\bin\x64\$Config\net9.0-windows10.0.22621.0\$appName.Handler.exe"
-if (Test-Path $handlerSrc) {
-    Copy-Item $handlerSrc -Destination $outDir -Force
-    Write-Host "Handler deployed to $outDir" -ForegroundColor DarkGray
+# Copy Handler to out/ (side by side with BrowserMux.exe). Missing is fatal: an out/ without
+# the handler looks fine until links stop opening, so don't skip it quietly.
+$handlerBin = Resolve-TfmDir "$root\src\$appName.Handler\bin\x64\$Config"
+$handlerSrc = if ($handlerBin) { Join-Path $handlerBin "$appName.Handler.exe" } else { $null }
+if (-not $handlerSrc -or -not (Test-Path $handlerSrc)) {
+    Write-Host "DEPLOY FAILED: $appName.Handler.exe not found under src\$appName.Handler\bin\x64\$Config" -ForegroundColor Red
+    exit 1
 }
+Copy-Item $handlerSrc -Destination $outDir -Force
+Write-Host "Handler deployed to $outDir" -ForegroundColor DarkGray
 
 if ($Run) {
     Write-Host "Launching: $Url" -ForegroundColor Cyan
