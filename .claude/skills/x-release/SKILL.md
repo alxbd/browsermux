@@ -28,9 +28,18 @@ From a clean `main` branch, after the commit you want to ship is pushed.
 ```bash
 # 1. Write the notes (see "Release notes" below for the required sections)
 #    Anywhere outside the repo — the scratchpad is fine, the file is not committed.
-# 2. Tag with -a and -F so the notes become the tag message
-git tag -a v1.2.3 -F notes.md
+# 2. Tag with -a and -F so the notes become the tag message.
+#    --cleanup=verbatim is REQUIRED: git's default strips every line starting with "#",
+#    which silently eats all your "## Bug Fixes" markdown headings.
+git tag -a v1.2.3 -F notes.md --cleanup=verbatim
 git push origin v1.2.3
+```
+
+Verify before pushing, it takes two seconds and the tag message cannot be changed afterwards:
+
+```bash
+git cat-file -t v1.2.3                          # must print "tag", not "commit"
+git tag -l --format='%(contents)' v1.2.3        # must still show the ## headings
 ```
 
 The workflow:
@@ -99,13 +108,18 @@ commit subjects.
 ### Shipping them
 
 ```bash
-git tag -a v1.0.3 -F notes.md
+git tag -a v1.0.3 -F notes.md --cleanup=verbatim
 git push origin v1.0.3
 ```
 
 The workflow reads the tag message (`git tag -l --format='%(contents)'`) and passes
 it to the release as `body_path`. It falls back to `generate_release_notes` only
 when the tag has no message, and warns in the CI log when it does.
+
+`--cleanup=verbatim` is not optional. Git's default cleanup mode treats every line
+starting with `#` as a comment and deletes it, so a notes file written in markdown
+loses all its `##` headings and the release ships as an undifferentiated bullet list.
+This happened on v1.1.0 and had to be patched afterwards with `gh release edit`.
 
 ### Fixing notes after publishing
 
@@ -127,7 +141,8 @@ Before pushing a tag, verify:
 - [ ] CI is green on the commit you're about to tag
 - [ ] No uncommitted changes (`git status` clean)
 - [ ] You're on `main` and up to date with `origin/main`
-- [ ] Release notes written, and the tag is annotated (`git tag -a ... -F notes.md`)
+- [ ] Release notes written, and the tag is annotated with `--cleanup=verbatim`
+- [ ] `git tag -l --format='%(contents)' <tag>` still shows the `##` headings
 - [ ] `git tag --sort=-v:refname | head -1` — the new version is actually higher than
       the last one. The version files in the repo stay at their placeholder value
       because CI rewrites them from the tag, so **never read the version from
