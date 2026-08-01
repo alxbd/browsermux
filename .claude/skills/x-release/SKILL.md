@@ -20,21 +20,31 @@ runs `scripts/set-version.ps1` to rewrite `Directory.Build.props` and
 For pre-releases use a hyphen suffix: `v1.2.0-beta.1`. The workflow auto-marks
 any tag containing `-` as a GitHub pre-release.
 
-## Cutting a release — the 4 commands
+## Cutting a release
 
-From a clean `main` branch, after the commit you want to ship is pushed:
+From a clean `main` branch, after the commit you want to ship is pushed.
+**Write the release notes first**, then put them in the tag:
 
 ```bash
-git tag v1.2.3
+# 1. Write the notes (see "Release notes" below for the required sections)
+#    Anywhere outside the repo — the scratchpad is fine, the file is not committed.
+# 2. Tag with -a and -F so the notes become the tag message
+git tag -a v1.2.3 -F notes.md
 git push origin v1.2.3
 ```
 
-That's it. The workflow:
+The workflow:
 1. Strips the `v` → `1.2.3`
 2. Runs `scripts/set-version.ps1 -Version 1.2.3` (rewrites both files)
 3. Builds `BrowserMux.sln` + AOT-publishes the Handler
 4. Builds the Inno installer + portable zip
-5. Creates a GitHub Release with auto-generated notes and both assets attached
+5. Reads the annotated tag message and publishes it as the release body, with both
+   assets attached
+
+**Never use a bare `git tag v1.2.3`.** A lightweight tag has no message, so the
+workflow falls back to GitHub's auto-generated commit list and users see raw commit
+subjects. The fallback exists so a release is never empty, not as a normal path — it
+emits a CI warning when it fires.
 
 Existing users' auto-updater polls `api.github.com/repos/alxbd/browsermux/releases/latest`
 and offers the upgrade.
@@ -56,42 +66,58 @@ and offers the upgrade.
 
 ## Release notes
 
-The CI workflow creates a release with auto-generated notes (commit list). Those
-are not user-friendly. After the CI release is published, **overwrite the notes**
-with a proper changelog using `gh release edit`.
+Written **before** tagging and shipped inside the annotated tag. The release is
+correct the moment it is published, so users and the in-app updater never see raw
+commit subjects.
 
 ### How to write release notes
 
 1. List commits since the previous tag:
    ```bash
-   git log v1.0.0..v1.0.1 --oneline
+   git log v1.0.2..HEAD --oneline
    ```
-2. Group changes into sections. Use only the sections that apply:
-   ```markdown
-   ## What's New         ← new user-facing features
-   ## Improvements       ← enhancements to existing features
-   ## Bug Fixes          ← bug fixes
-   ## Breaking Changes   ← anything that breaks existing config/behavior
-   ```
-3. Each bullet should describe the **user-visible effect**, not the code change.
+2. Group changes into sections. **This list is closed — never invent a section.**
+   Use only the ones that apply, always in this order:
+
+   | Section | For |
+   |---|---|
+   | `## Breaking Changes` | Anything that breaks existing config or behavior. First, so it cannot be missed. |
+   | `## What's New` | New user-facing features |
+   | `## Improvements` | Enhancements to features that already existed |
+   | `## Bug Fixes` | Bug fixes |
+   | `## Upgrading` | Only when upgrading itself needs an action or a caveat (manual step, one-off migration, a version that must be installed first). Omit it when the upgrade is uneventful. |
+
+3. Each bullet describes the **user-visible effect**, not the code change.
    Bad:  "Switch Content.KeyDown to Content.PreviewKeyDown"
    Good: "Fixed Enter key not launching the selected browser in the picker"
-4. Push the notes:
-   ```bash
-   gh release edit v1.0.1 --notes "$(cat <<'EOF'
-   ## Bug Fixes
-   - Fixed browser drag-reorder not persisting in settings
-   - Fixed Enter key not launching selected browser in picker
-   EOF
-   )"
-   ```
-   Or use a file: `gh release edit v1.0.1 --notes-file RELEASE_NOTES.md`
+4. Skip internal-only commits (docs, chores, CI, refactors with no visible effect).
+   A release whose commits are all internal gets a one-line "Maintenance release"
+   note rather than an empty body.
+5. Follow the repo writing rules: English, no emoji, no em dashes, no bold inside
+   list items.
 
-### Automation
+### Shipping them
 
-The workflow uses `generate_release_notes: true` as a fallback. The `gh release
-edit` step after CI is intentional — it lets you curate the notes after verifying
-the release assets are correct.
+```bash
+git tag -a v1.0.3 -F notes.md
+git push origin v1.0.3
+```
+
+The workflow reads the tag message (`git tag -l --format='%(contents)'`) and passes
+it to the release as `body_path`. It falls back to `generate_release_notes` only
+when the tag has no message, and warns in the CI log when it does.
+
+### Fixing notes after publishing
+
+The tag message is immutable once pushed, and re-tagging is forbidden. To correct
+the text of an already published release, edit the release only:
+
+```bash
+gh release edit v1.0.3 --notes-file corrected.md
+```
+
+The tag keeps the original wording. That is accepted: the release page is what
+users read.
 
 ## Pre-flight checklist
 
@@ -101,6 +127,11 @@ Before pushing a tag, verify:
 - [ ] CI is green on the commit you're about to tag
 - [ ] No uncommitted changes (`git status` clean)
 - [ ] You're on `main` and up to date with `origin/main`
+- [ ] Release notes written, and the tag is annotated (`git tag -a ... -F notes.md`)
+- [ ] `git tag --sort=-v:refname | head -1` — the new version is actually higher than
+      the last one. The version files in the repo stay at their placeholder value
+      because CI rewrites them from the tag, so **never read the version from
+      `Directory.Build.props` or `setup.iss`** to work out what shipped last.
 
 ## Deleting a botched release
 

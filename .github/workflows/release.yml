@@ -12,6 +12,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The annotated tag object carries the release notes (see below). Plain checkout
+          # only fetches the commit, so the message would be unreadable.
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
@@ -68,11 +73,35 @@ jobs:
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           Compress-Archive -Path out/* -DestinationPath "dist/BrowserMux-Portable-$env:VERSION.zip"
 
+      # Release notes come from the annotated tag: `git tag -a v1.2.3 -F notes.md`.
+      # A lightweight tag has no message, in which case we fall back to GitHub's
+      # auto-generated commit list rather than publishing an empty release.
+      - name: Read release notes from the tag
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+
+          # Only an annotated tag carries a message. On a lightweight tag `%(contents)`
+          # silently returns the tagged COMMIT's message, which is not what we want to
+          # publish, so check the object type first.
+          $type = (git cat-file -t $tag 2>$null)
+          $notes = if ($type -eq 'tag') { (git tag -l --format='%(contents)' $tag) -join "`n" } else { '' }
+
+          if ($notes.Trim()) {
+            $notes | Set-Content release-notes.md -Encoding utf8
+            echo "HAS_NOTES=true" >> $env:GITHUB_ENV
+            Write-Host "Using release notes from the annotated tag ($($notes.Length) chars)."
+          } else {
+            echo "HAS_NOTES=false" >> $env:GITHUB_ENV
+            Write-Host "::warning::Tag $tag has no message ($type), falling back to auto-generated notes."
+          }
+
       # Publish GitHub Release with both assets
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body_path: ${{ env.HAS_NOTES == 'true' && 'release-notes.md' || '' }}
+          generate_release_notes: ${{ env.HAS_NOTES != 'true' }}
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             dist/BrowserMux-Setup-*.exe
