@@ -10,6 +10,9 @@ Items marked _(not implemented)_ are documented intentions that don't yet exist 
 ### Show on URL click
 When BrowserMux is the default browser, clicking any link launches the AOT handler, which forwards the URL through the named pipe to the running app and shows the picker.
 
+### Keyboard focus on show
+The picker takes the foreground and puts keyboard focus on the browser list every time it is shown, so the arrow keys and number shortcuts work immediately. `Window.Activate()` is not enough on its own: the show request arrives from the background, and Windows only lets a process take the foreground under specific conditions. The handler passes its own right along with `AllowSetForegroundWindow` before handing over the URL, and `ForegroundHelper` forces it for the paths the handler does not cover.
+
 ### Launcher mode (no URL)
 The picker can be opened without a URL to act as a quick browser launcher (from tray or global hotkey). No URL bar is shown in this mode.
 

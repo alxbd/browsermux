@@ -1,4 +1,5 @@
 using System.IO.Pipes;
+using System.Runtime.InteropServices;
 
 // The Handler is the exe registered with Windows as the default browser.
 // It must start as fast as possible and do ONE thing:
@@ -10,6 +11,13 @@ const string AppExeName = BrowserMux.Core.AppInfo.AppExeName;
 
 var url = args.Length > 0 ? args[0] : string.Empty;
 if (string.IsNullOrWhiteSpace(url)) return;
+
+// We were started by whatever app the user clicked the link in, so we hold the right to set
+// the foreground window and the app we are about to hand the URL to does not. Pass it on, or
+// the picker shows up without keyboard focus and the arrow keys go to the wrong window.
+// ASFW_ANY rather than a PID: finding the running instance would mean enumerating processes,
+// and this exe has a sub-100ms startup budget. The grant dies with the next foreground change.
+Native.AllowSetForegroundWindow(Native.ASFW_ANY);
 
 // Try to send the URL to an already running instance
 if (await TrySendViaPipe(url, PipeName)) return;
@@ -69,4 +77,14 @@ static string? FindApp(string exeName)
     }
 
     return null;
+}
+
+static class Native
+{
+    /// <summary>Grants the right to every process. See the call site for why not a PID.</summary>
+    internal const int ASFW_ANY = -1;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool AllowSetForegroundWindow(int dwProcessId);
 }

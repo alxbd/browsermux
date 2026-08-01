@@ -109,11 +109,21 @@ public sealed partial class PickerWindow : Window
         RootGrid.Opacity = 1;
         Activate();
 
+        // Activate() alone leaves the picker visible but unfocused when the show request came
+        // from the background (a URL piped in by the Handler), so the arrow keys would go to
+        // the app the user came from until they clicked us.
+        ForegroundHelper.ForceForeground(WinRT.Interop.WindowNative.GetWindowHandle(this));
+
         DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
         {
-            if (BrowsersPanel.Items.Count == 0) return;
-            if (BrowsersPanel.SelectedIndex < 0) BrowsersPanel.SelectedIndex = 0;
-            BrowsersPanel.Focus(FocusState.Programmatic);
+            if (BrowsersPanel.Items.Count > 0 && BrowsersPanel.SelectedIndex < 0)
+                BrowsersPanel.SelectedIndex = 0;
+
+            // Keyboard focus has to land inside the window, otherwise the key handlers on
+            // Content never see anything. Not gated on the list having items: Escape has to
+            // work even when nothing was detected.
+            if (!BrowsersPanel.Focus(FocusState.Programmatic))
+                AppLogger.Warn("[Picker] Could not move keyboard focus to the browser list");
         });
     }
 
