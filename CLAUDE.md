@@ -64,7 +64,7 @@ variables in `build.ps1` and `register.ps1` (see "keep in sync" comment at the t
 | IPC | **Named Pipe** `\\.\pipe\BrowserMuxPipe` | Single-instance, standard Windows |
 | Config | **JSON** in `%LOCALAPPDATA%\BrowserMux\` | Human-readable, versionable |
 | MVVM | **CommunityToolkit.Mvvm** | `[ObservableProperty]`, `[RelayCommand]` |
-| DI | **Microsoft.Extensions.Hosting** | Clean services, testable |
+| DI | **None** — static singletons (`PreferencesService.Instance`) | An app this size doesn't need a container |
 | Installer | **Inno Setup 6** | HKLM / HKCU hybrid, see `docs/installer-inno.md` |
 
 ---
