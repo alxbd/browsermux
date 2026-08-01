@@ -16,6 +16,10 @@
 #define HandlerExe   "BrowserMux.Handler.exe"
 #define ProgId       "BrowserMuxURL"
 #define RunKey       "Software\Microsoft\Windows\CurrentVersion\Run"
+; First release that answers WM_QUERYENDSESSION / WM_ENDSESSION, i.e. that lets the
+; Restart Manager close it. Older installs have to be terminated (see PrepareToInstall).
+; Not touched by scripts/set-version.ps1 — it is a fact about the past, not the version.
+#define FirstSelfClosingVersion "1.0.1"
 
 [Setup]
 AppId={{B8A2F3E1-7C4D-4A5B-9E6F-1D2C3B4A5E6F}
@@ -137,6 +141,32 @@ begin
     WizardSelectTasks('*startupicon')
   else if FileExists(ExpandConstant('{app}\{#AppExeName}')) then
     WizardSelectTasks('*!startupicon');
+end;
+
+// Upgrades over a version older than {#FirstSelfClosingVersion} have to be forced.
+// Those builds never answered the Restart Manager's shutdown request — the picker window
+// cancels WM_CLOSE to hide into the tray and nothing handled WM_ENDSESSION — so
+// CloseApplications waited 30 seconds and then failed with "Setup was unable to
+// automatically close all applications", leaving the old exe locked.
+//
+// PrepareToInstall runs before Setup's Restart Manager step, so the process is already gone
+// by the time Setup looks. Newer builds are left alone on purpose: they close themselves
+// cleanly and remove their tray icon, where a kill would leave a ghost icon behind.
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  InstalledVersion, FirstSelfClosing: Int64;
+  ResultCode: Integer;
+begin
+  Result := '';
+
+  // No readable exe at the target = fresh install, nothing to close.
+  if not GetPackedVersion(ExpandConstant('{app}\{#AppExeName}'), InstalledVersion) then Exit;
+  if not StrToVersion('{#FirstSelfClosingVersion}', FirstSelfClosing) then Exit;
+  if ComparePackedVersion(InstalledVersion, FirstSelfClosing) >= 0 then Exit;
+
+  Log('Installed build predates {#FirstSelfClosingVersion}: terminating it, it cannot close itself.');
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM {#AppExeName}',  '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM {#HandlerExe}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
 // Detect .NET 9 Desktop Runtime by scanning the standard install folders.
