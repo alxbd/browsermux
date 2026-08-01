@@ -110,8 +110,11 @@ When the user clicks **"Download & install"**:
    - `/SUPPRESSMSGBOXES` — accept default answers for any prompt the script doesn't handle
    - `/NORESTART` — never trigger a Windows reboot from the installer
    - `/RELAUNCH` — **custom switch** consumed by `setup.iss` (see below)
-3. `CloseApplications=yes` in `[Setup]` makes Inno SendMessage-WM_CLOSE the running
-   BrowserMux instance before copying files, so file locks never block the update.
+3. `(Application.Current as App)?.ShutdownNow()` quits BrowserMux immediately after the
+   installer is launched: faster than making Setup ask, and the tray icon is removed cleanly
+   before the files are replaced. If the app is still running anyway, `CloseApplications=yes`
+   in `[Setup]` closes it through the Restart Manager — see
+   [installer-inno.md](installer-inno.md).
 
 ### The `/RELAUNCH` switch
 

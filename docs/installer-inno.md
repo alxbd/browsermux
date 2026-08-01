@@ -188,6 +188,53 @@ self-update. See [auto-update.md](auto-update.md).
 
 ---
 
+## Closing the running app before an upgrade
+
+An upgrade replaces `BrowserMux.exe` while the previous version is running in the tray, so
+Setup has to get that process to quit first.
+
+`CloseApplications=yes` makes Inno use the **Restart Manager**: it registers the files it is
+about to replace, asks the Restart Manager who is locking them, and calls `RmShutdown`. The
+Restart Manager sends `WM_QUERYENDSESSION` then `WM_ENDSESSION` to the top-level windows of
+those processes and waits for them to exit.
+
+BrowserMux answers that protocol in `SessionEndHandler` (`src/BrowserMux.App/Services/`),
+which subclasses the picker window and terminates the process on `WM_ENDSESSION`. This is not
+optional: the picker cancels `WM_CLOSE` to hide into the tray, so without an explicit
+end-session handler nothing in the process ever agrees to close. The Restart Manager then
+waits 30 seconds, returns `ERROR_FAIL_SHUTDOWN`, and Setup shows:
+
+```
+Setup was unable to automatically close all applications.
+```
+
+### Legacy builds (`PrepareToInstall`)
+
+Versions before `{#FirstSelfClosingVersion}` shipped without that handler, so they can only be
+terminated. `PrepareToInstall` does exactly that, gated on the version of the exe already
+installed:
+
+```pascal
+if not GetPackedVersion(ExpandConstant('{app}\{#AppExeName}'), InstalledVersion) then Exit;
+if not StrToVersion('{#FirstSelfClosingVersion}', FirstSelfClosing) then Exit;
+if ComparePackedVersion(InstalledVersion, FirstSelfClosing) >= 0 then Exit;
+// older: taskkill /F the app and the handler
+```
+
+Two things make this work:
+
+- **`PrepareToInstall` runs before Inno's Restart Manager step** (verified against Inno 6:
+  the `PrepareToInstall` log line precedes `Found N files to register with RestartManager`).
+  The old process is already gone by the time Setup looks, so there is no 30-second stall.
+- **Current builds are deliberately left alone.** They close themselves cleanly and remove
+  their tray icon on the way out; a `taskkill /F` would leave a ghost icon in the
+  notification area until the user hovers over it.
+
+`#define FirstSelfClosingVersion` is a fact about the past, not the version being built —
+`scripts/set-version.ps1` does not touch it.
+
+---
+
 ## Prerequisite detection & on-the-fly install
 
 All logic lives in the `[Code]` section of `setup.iss`. Two helpers detect the prerequisites,
@@ -304,6 +351,7 @@ The same icon is reused for `UninstallDisplayIcon`, the registered browser icon
 #define HandlerExe   "BrowserMux.Handler.exe"
 #define ProgId       "BrowserMuxURL"
 #define RunKey       "Software\Microsoft\Windows\CurrentVersion\Run"
+#define FirstSelfClosingVersion "1.0.1"
 ```
 
 `AppId={B8A2F3E1-7C4D-4A5B-9E6F-1D2C3B4A5E6F}` — fixed GUID, **never change** (it's how

@@ -207,6 +207,9 @@ The first command-line argument is only treated as a URL when it parses as an ab
 ### Named-pipe IPC
 `\\.\pipe\BrowserMuxPipe` carries one URL per connection from handler → app.
 
+### Closes on request from Windows
+`SessionEndHandler` answers `WM_QUERYENDSESSION` / `WM_ENDSESSION` on the picker window and terminates the process, so the Restart Manager can close BrowserMux during an install, a Windows Update or a logoff. Without it nothing in the process ever agrees to quit, because the picker cancels `WM_CLOSE` to hide into the tray. See [installer-inno.md](installer-inno.md).
+
 ### Single-instance mutex
 `BrowserMux_SingleInstance` ensures only one app process runs. A second launch forwards its URL argument over the pipe and exits.
 
