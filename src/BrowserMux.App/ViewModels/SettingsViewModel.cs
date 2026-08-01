@@ -148,7 +148,16 @@ public sealed partial class SettingsViewModel : ObservableObject
     { if (_loading) return; Settings.CloseOnFocusLoss = value; Save(); }
 
     partial void OnDetectChromiumProfilesChanged(bool value)
-    { if (_loading) return; Settings.DetectChromiumProfiles = value; Save(); }
+    {
+        if (_loading) return;
+        Settings.DetectChromiumProfiles = value;
+        Save();
+
+        // Browsers and rules are keyed by id, and the ids themselves change with this
+        // setting ("chrome.exe" vs "chrome.exe:::Default"), so the lists have to be rebuilt
+        // for the toggle to show any effect. The picker re-detects on every show anyway.
+        ReloadBrowsers();
+    }
 
     private void Save() => _prefs.Save();
 
@@ -176,7 +185,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     private void BuildBrowserOptions()
     {
-        var detected = BrowserDetector.DetectAll(detectChromiumProfiles: true);
+        var detected = BrowserDetector.DetectAll(Settings.DetectChromiumProfiles);
         _browserOptions = [];
         _customIds.Clear();
         _idToExePath.Clear();

@@ -114,7 +114,8 @@ public sealed partial class PickerViewModel : ObservableObject
 
     private void LoadBrowsers()
     {
-        var detected = BrowserDetector.DetectAll(detectChromiumProfiles: true);
+        var detected = BrowserDetector.DetectAll(
+            PreferencesService.Instance.Current.Settings.DetectChromiumProfiles);
         var cards = BuildCards(detected);
 
         Browsers.Clear();
@@ -195,7 +196,9 @@ public sealed partial class PickerViewModel : ObservableObject
         var browserId = engine.MatchToBrowserId(url, prefs.DomainRules);
         if (browserId is null or "_picker") return false;
 
-        var browsers = BrowserDetector.DetectAll(detectChromiumProfiles: true);
+        // Same detection mode as the picker list, otherwise a rule could resolve against
+        // ids the user can't actually see.
+        var browsers = BrowserDetector.DetectAll(prefs.Current.Settings.DetectChromiumProfiles);
         BrowserCardViewModel? target = null;
 
         foreach (var browser in browsers)
