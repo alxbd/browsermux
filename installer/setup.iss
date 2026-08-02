@@ -11,7 +11,7 @@
 #define AppName      "BrowserMux"
 #define AppVersion   "1.0.0"
 #define AppPublisher "BrowserMux"
-#define AppURL       "https://browsermux.com"
+#define AppURL       "https://github.com/alxbd/browsermux"
 #define AppExeName   "BrowserMux.exe"
 #define HandlerExe   "BrowserMux.Handler.exe"
 #define ProgId       "BrowserMuxURL"

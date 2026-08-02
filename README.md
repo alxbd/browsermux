@@ -10,7 +10,7 @@ Choose which browser, or which profile, opens each link.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6)](https://www.microsoft.com/windows)
 
-[Website](https://browsermux.com) · [Download](https://github.com/alxbd/browsermux/releases/latest) · [Report a bug](https://github.com/alxbd/browsermux/issues)
+[Download](https://github.com/alxbd/browsermux/releases/latest) · [Report a bug](https://github.com/alxbd/browsermux/issues)
 
 ![BrowserMux picker](assets/demo-app-main-window.png)
 

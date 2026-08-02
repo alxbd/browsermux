@@ -4,8 +4,6 @@
 
 - Whichever the language used in the prompt, always output code, comments and md files in English.
 
-**Website**: browsermux.com
-
 Modern Windows browser selector. Replaces Hurl and BrowserSelect (abandoned).
 Intercepts system link clicks and shows a picker to choose which browser (or profile) to open.
 

@@ -180,7 +180,7 @@ Global hotkey to open the picker in launcher mode. Click-to-capture editor accep
 ## Settings — About tab
 
 ### Version display
-Shows the running version and a link to browsermux.com.
+Shows the running version and a link to the GitHub repository.
 
 ### Default browser status
 Shows whether BrowserMux is the current Windows default for `https`, with a button that opens `ms-settings:defaultapps`.

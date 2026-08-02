@@ -383,22 +383,6 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <FontIcon Grid.Column="0" Glyph="&#xE71B;" Margin="0,0,16,0" />
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Website" />
-                            <TextBlock Text="browsermux.com" FontSize="12" Opacity="0.5" />
-                        </StackPanel>
-                        <HyperlinkButton Content="Open" Grid.Column="2" NavigateUri="https://browsermux.com" />
-                    </Grid>
-                </Border>
-
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="4" Padding="16,12">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
                         <FontIcon Grid.Column="0" Glyph="&#xE8A7;" Margin="0,0,16,0" />
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="GitHub" />

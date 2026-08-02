@@ -360,7 +360,7 @@ The same icon is reused for `UninstallDisplayIcon`, the registered browser icon
 #define AppName      "BrowserMux"
 #define AppVersion   "0.1.0"
 #define AppPublisher "BrowserMux"
-#define AppURL       "https://browsermux.com"
+#define AppURL       "https://github.com/alxbd/browsermux"
 #define AppExeName   "BrowserMux.exe"
 #define HandlerExe   "BrowserMux.Handler.exe"
 #define ProgId       "BrowserMuxURL"
